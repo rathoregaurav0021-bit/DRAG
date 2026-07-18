@@ -14,7 +14,8 @@ The backend handles the heavy lifting, including data fetching (OpenStreetMap, W
 
 ### Prerequisites
 - Python 3.9+
-- Docker (optional, for PostGIS)
+- PostgreSQL 16+ (installed natively)
+- PostGIS Extension (installed via PostgreSQL Stack Builder -> Spatial Extensions)
 - QGIS & ANUGA Viewer Plugin (to view simulation results)
 
 ### Installation
@@ -72,19 +73,23 @@ The backend handles the heavy lifting, including data fetching (OpenStreetMap, W
      pip install anuga
      ```
 
-### Running the Data Pipeline
-Automate the downloading of road networks, shelters, and precipitation forecasts for the Bhuragaon region:
-```bash
-python src/data_pipeline.py
-```
-*Data is saved to `backend/data/raw/`.*
+### Automated Pipeline Execution (Recommended)
+Instead of running scripts individually, use the master automation script. This script automatically:
+1. Initializes the PostGIS database.
+2. Fetches OpenStreetMap road networks, shelters, and Open-Meteo weather data.
+3. Executes the ANUGA hydraulic simulation.
 
-### Running the ANUGA Simulation
-Generate the computational mesh and run the shallow water flood wave simulation:
-```bash
-python src/hydraulic.py
-```
-*Simulation results are saved as `.sww` files in `backend/data/processed/`.*
+* **Windows (PowerShell):**
+  ```powershell
+  .\run_pipeline.ps1
+  ```
+* **Linux / macOS:**
+  ```bash
+  chmod +x run_pipeline.sh
+  ./run_pipeline.sh
+  ```
+
+*Note: Raw data is saved to `backend/data/raw/` and simulation `.sww` files are saved to `backend/data/processed/`.*
 
 ### Running the FastAPI Server
 To serve the API for the frontend dashboard:

@@ -1,7 +1,10 @@
 "use client";
 import React, { useState } from 'react';
+import { LayoutDashboard, History, Settings, LogOut } from 'lucide-react';
+import MapOverview from '@/components/MapOverview';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState('overview');
   const [status, setStatus] = useState("Awaiting Simulation...");
   const [recommendation, setRecommendation] = useState("");
 
@@ -21,75 +24,104 @@ export default function Home() {
     setTimeout(() => {
       setStatus("Simulation Complete");
       setRecommendation("Recommended Shelter: Govt High School (850m away). Evacuate via Market Road. Avoid River Embankment Road due to high flooding.");
+      // In the future, this will automatically toggle the 'floodDepth' layer in MapOverview
     }, 2000);
   };
 
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'simulations', label: 'Simulations', icon: History },
+    { id: 'settings', label: 'Settings', icon: Settings },
+  ];
+
   return (
-    <main className="flex h-screen flex-col bg-gray-50 overflow-hidden">
-      {/* Premium Navbar */}
-      <nav className="w-full h-16 bg-blue-700 text-white flex items-center justify-between px-8 shadow-md z-50 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white text-blue-700 rounded-xl flex items-center justify-center font-bold text-2xl shadow-inner">
+    <main className="flex h-screen w-full bg-gray-100 overflow-hidden font-sans">
+      
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 z-50">
+        {/* Logo Area */}
+        <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
+          <div className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-inner mr-3">
             F
           </div>
-          <h1 className="text-xl font-semibold tracking-wide">FloodShield</h1>
+          <h1 className="text-lg font-bold text-white tracking-wide">FloodShield</h1>
         </div>
-        <button 
-          onClick={handleSimulate}
-          className="bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full font-medium transition-all shadow-sm flex items-center gap-2"
-        >
-          {status === "Running Simulation..." ? (
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          ) : null}
-          {status === "Running Simulation..." ? "Simulating..." : "Run Simulation"}
-        </button>
-      </nav>
+
+        {/* Navigation Links */}
+        <div className="flex-1 py-6 px-4 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <span className="font-medium text-sm">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Bottom Profile/Logout */}
+        <div className="p-4 border-t border-slate-800">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors text-slate-400 hover:text-white">
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium text-sm">Sign Out</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 relative flex">
-        {/* Map Placeholder */}
-        <div className="flex-1 bg-gradient-to-br from-blue-50 to-gray-200 flex flex-col items-center justify-center relative overflow-hidden">
-          {/* Subtle Grid Background */}
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-400 via-gray-200 to-transparent"></div>
-          
-          <div className="z-10 bg-white/40 p-8 rounded-2xl backdrop-blur-md border border-white/50 shadow-sm text-center">
-             <h2 className="text-3xl font-light text-gray-700 mb-4">Interactive Map View</h2>
-             <p className="text-gray-500 text-sm max-w-md">The React-Leaflet component will render the Bhuragaon DEM, routing vectors, and flood depth rasters here.</p>
+      <section className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Top Header Bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-30 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-800 capitalize">{activeTab} Dashboard</h2>
+          <div className="flex items-center gap-4">
+             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200 shadow-sm">
+                <span className="text-blue-700 font-bold text-xs">U</span>
+             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Glassmorphism Recommendation Panel */}
-        <div className="absolute top-6 right-6 w-96 bg-white/70 backdrop-blur-xl border border-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl p-6 z-40 transition-all duration-300">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${status === "Running Simulation..." ? "bg-blue-500 animate-pulse" : recommendation ? "bg-green-500" : "bg-gray-300"}`}></span>
-            AI Recommendations
-          </h3>
+        {/* Dynamic Content Views */}
+        <div className="flex-1 relative overflow-hidden">
+          {activeTab === 'overview' && (
+             <MapOverview 
+                status={status} 
+                recommendation={recommendation} 
+                onSimulate={handleSimulate} 
+             />
+          )}
           
-          <div className="bg-gray-100/50 rounded-2xl p-5 border border-gray-200/50 min-h-[140px] flex flex-col justify-center transition-all duration-300">
-            {recommendation ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <p className="text-green-700 font-semibold text-sm mb-3">Safe Route Found</p>
-                <p className="text-gray-700 text-sm leading-relaxed">{recommendation}</p>
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm text-center font-medium">{status}</p>
-            )}
-          </div>
+          {activeTab === 'simulations' && (
+             <div className="p-8 flex items-center justify-center h-full bg-gray-50">
+                <div className="text-center text-gray-400">
+                    <History className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <h3 className="text-xl font-medium text-gray-600">Simulation History</h3>
+                    <p className="mt-2 text-sm">Past ANUGA flood simulations will appear here.</p>
+                </div>
+             </div>
+          )}
 
-          {recommendation && (
-            <div className="mt-5 grid grid-cols-2 gap-4 animate-in zoom-in-95 duration-500">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 p-4 rounded-2xl shadow-sm">
-                <p className="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Evac Time</p>
-                <p className="text-2xl font-bold text-blue-900">13 min</p>
-              </div>
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 border border-orange-100 p-4 rounded-2xl shadow-sm">
-                <p className="text-xs text-orange-500 font-bold uppercase tracking-wider mb-1">Flood Arrival</p>
-                <p className="text-2xl font-bold text-orange-900">42 min</p>
-              </div>
-            </div>
+          {activeTab === 'settings' && (
+             <div className="p-8 flex items-center justify-center h-full bg-gray-50">
+                <div className="text-center text-gray-400">
+                    <Settings className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                    <h3 className="text-xl font-medium text-gray-600">Project Settings</h3>
+                    <p className="mt-2 text-sm">Configure API keys, API proxy targets, and database connections.</p>
+                </div>
+             </div>
           )}
         </div>
-      </div>
+      </section>
+
     </main>
   );
 }
