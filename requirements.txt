@@ -1,0 +1,18 @@
+fastapi==0.104.1
+uvicorn==0.24.0.post1
+pydantic==2.5.2
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+geoalchemy2==0.14.2
+geopandas==0.14.1
+shapely==2.0.2
+rasterio==1.3.9
+osmnx==1.8.0
+networkx==3.2.1
+requests==2.31.0
+openai==1.3.5
+# anuga-core  # usually installed separately or via conda
+# wflow       # usually a julia wrapper or external call
+dill==0.3.7   # fixes anuga import issue
