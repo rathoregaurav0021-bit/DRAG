@@ -1,48 +1,69 @@
-# FloodShield
+# FloodShield 🌊
 
-FloodShield is an end-to-end AI-Powered Flood Decision Intelligence System designed to transform weather forecasts into actionable evacuation plans. It goes beyond traditional flood warnings by predicting inundation, identifying safe shelters, computing safe evacuation routes, and delivering personalized recommendations.
+FloodShield is an AI-Powered Flood Decision Intelligence System. It features an automated data pipeline, an ANUGA hydraulic flood simulation engine, and a premium interactive Next.js web dashboard.
 
-## Study Area
-Bhuragaon, Morigaon District, Assam
+This repository is split into two components:
+1. `backend/`: Python-based data automation, hydraulic simulation, and FastAPI server.
+2. `frontend/`: Next.js (React) premium UI for the flood dashboard.
 
-## Prerequisites
-- Docker (for PostGIS)
+---
+
+## 🏗️ Backend Setup
+
+The backend handles the heavy lifting, including data fetching (OpenStreetMap, Weather) and running the flood propagation simulations.
+
+### Prerequisites
 - Python 3.9+
+- Docker (optional, for PostGIS)
+- QGIS & ANUGA Viewer Plugin (to view simulation results)
 
-## Setup Instructions
+### Installation
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-1. **Environment Variables**:
-   Copy the example environment file and configure it with your settings:
-   ```bash
-   cp .env.example .env
-   ```
+### Running the Data Pipeline
+Automate the downloading of road networks, shelters, and precipitation forecasts for the Bhuragaon region:
+```bash
+python src/data_pipeline.py
+```
+*Data is saved to `backend/data/raw/`.*
 
-2. **Database (PostGIS)**:
-   Start the PostGIS database using Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
+### Running the ANUGA Simulation
+Generate the computational mesh and run the shallow water flood wave simulation:
+```bash
+python src/hydraulic.py
+```
+*Simulation results are saved as `.sww` files in `backend/data/processed/`.*
 
-3. **Python Environment**:
-   Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *Note: Ensure you have `wflow` and `anuga` appropriately configured in your environment if not installed via pip.*
+### Running the FastAPI Server
+To serve the API for the frontend dashboard:
+```bash
+uvicorn src.main:app --reload
+```
+The backend API will run on `http://localhost:8000`.
 
-4. **Run the Server**:
-   Start the FastAPI backend:
-   ```bash
-   uvicorn src.main:app --reload
-   ```
+---
 
-5. **Dashboard**:
-   Open your browser and navigate to `http://localhost:8000` to view the FloodShield dashboard.
+## 💻 Frontend Setup
 
-## Architecture
-- **Hydrology**: `wflow`
-- **Hydraulic**: ANUGA
-- **Database**: PostgreSQL + PostGIS
-- **AI Recommendation**: OpenAI / Local LLM
-- **Routing**: NetworkX over OSM data
-- **Web Dashboard**: FastAPI, Leaflet, TailwindCSS
+The frontend provides a premium, interactive web interface built with Next.js, TailwindCSS, and Leaflet.
+
+### Prerequisites
+- Node.js & npm
+
+### Installation
+```bash
+cd frontend
+npm install
+```
+
+### Running the Dashboard
+Start the development server:
+```bash
+npm run dev
+```
+Open **http://localhost:3000** in your browser.
+
+> **Note:** The frontend automatically proxies API calls to the Python backend on port 8000. Make sure the backend server (`uvicorn`) is running simultaneously!
