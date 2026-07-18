@@ -18,10 +18,59 @@ The backend handles the heavy lifting, including data fetching (OpenStreetMap, W
 - QGIS & ANUGA Viewer Plugin (to view simulation results)
 
 ### Installation
-```bash
-cd backend
-pip install -r requirements.txt
-```
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+   *Note for Windows users: If you run into a `WinError 2` file not found error, run `python -m venv venv` (without the dot).*
+
+3. Activate the virtual environment:
+   * **Windows (PowerShell):**
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+   * **Windows (Command Prompt):**
+     ```cmd
+     venv\Scripts\activate.bat
+     ```
+   * **Linux / macOS:**
+     ```bash
+     source venv/bin/activate
+     ```
+
+4. Install the standard dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. Install ANUGA (Hydraulic Simulation Engine):
+   ANUGA is a heavy scientific module written in Python and C that requires C-compilation. Choose the method for your operating system:
+
+   * **Windows (Highly Recommended to use Conda)**
+     Natively compiling C-extensions on Windows via pip requires the heavy Microsoft C++ Build Tools. It is highly recommended to use Conda to get the pre-compiled binaries instead:
+     ```bash
+     conda install -c conda-forge anuga
+     ```
+
+   * **Linux / Ubuntu (via Pip)**
+     To install ANUGA natively on Linux, you must first install the system-level C compilers and Python development headers so `pip` can compile the physics engine from source:
+     ```bash
+     sudo apt-get update
+     sudo apt-get install build-essential python3-dev
+     pip install anuga
+     ```
+
+   * **macOS (via Pip)**
+     Ensure you have the Xcode Command Line Tools installed (`xcode-select --install`), then run:
+     ```bash
+     pip install anuga
+     ```
 
 ### Running the Data Pipeline
 Automate the downloading of road networks, shelters, and precipitation forecasts for the Bhuragaon region:
@@ -65,5 +114,11 @@ Start the development server:
 npm run dev
 ```
 Open **http://localhost:3000** in your browser.
+
+
+
+
+
+
 
 > **Note:** The frontend automatically proxies API calls to the Python backend on port 8000. Make sure the backend server (`uvicorn`) is running simultaneously!
