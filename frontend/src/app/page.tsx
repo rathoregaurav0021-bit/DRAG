@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { LayoutDashboard, History, Settings, LogOut, CloudRain } from 'lucide-react';
+import { LayoutDashboard, History, Settings, LogOut, CloudRain, ChevronLeft, ChevronRight } from 'lucide-react';
 import MapOverview from '@/components/MapOverview';
 import RainfallDashboard from '@/components/RainfallDashboard';
 
@@ -8,6 +8,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('overview');
   const [status, setStatus] = useState("Awaiting Simulation...");
   const [recommendation, setRecommendation] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleSimulate = async () => {
     setStatus("Running Simulation...");
@@ -40,13 +41,21 @@ export default function Home() {
     <main className="flex h-screen w-full bg-gray-100 overflow-hidden font-sans">
       
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 z-50">
+      <aside className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900 text-slate-300 flex flex-col shrink-0 z-50 relative`}>
+        {/* Toggle Button */}
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute -right-3 top-6 bg-blue-600 text-white rounded-full p-1 shadow-md z-50 hover:bg-blue-700 transition-colors border-2 border-slate-900"
+        >
+          {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </button>
+
         {/* Logo Area */}
-        <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
-          <div className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-inner mr-3">
+        <div className={`h-16 flex items-center ${isSidebarOpen ? 'px-6' : 'justify-center'} bg-slate-950 border-b border-slate-800`}>
+          <div className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-inner shrink-0">
             F
           </div>
-          <h1 className="text-lg font-bold text-white tracking-wide">FloodShield</h1>
+          {isSidebarOpen && <h1 className="text-lg font-bold text-white tracking-wide ml-3 whitespace-nowrap">FloodShield</h1>}
         </div>
 
         {/* Navigation Links */}
@@ -58,24 +67,27 @@ export default function Home() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center ${isSidebarOpen ? 'px-4' : 'justify-center'} py-3 rounded-xl transition-all duration-200 ${
                   isActive 
                     ? 'bg-blue-600 text-white shadow-md' 
                     : 'hover:bg-slate-800 hover:text-white'
                 }`}
+                title={!isSidebarOpen ? item.label : undefined}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span className="font-medium text-sm">{item.label}</span>
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                {isSidebarOpen && <span className="font-medium text-sm ml-3 whitespace-nowrap">{item.label}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* Bottom Profile/Logout */}
         <div className="p-4 border-t border-slate-800">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors text-slate-400 hover:text-white">
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium text-sm">Sign Out</span>
+          <button 
+            className={`w-full flex items-center ${isSidebarOpen ? 'px-4' : 'justify-center'} py-3 rounded-xl hover:bg-slate-800 transition-colors text-slate-400 hover:text-white`}
+            title={!isSidebarOpen ? "Sign Out" : undefined}
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            {isSidebarOpen && <span className="font-medium text-sm ml-3 whitespace-nowrap">Sign Out</span>}
           </button>
         </div>
       </aside>

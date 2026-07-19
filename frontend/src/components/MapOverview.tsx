@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Map as MapIcon, Navigation } from 'lucide-react';
+import { Layers, Map as MapIcon, Navigation, ChevronLeft, ChevronRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { 
@@ -13,6 +13,8 @@ const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
 });
 
 export default function MapOverview({ status, recommendation, onSimulate }: any) {
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  
   // Mock layers for the GIS dashboard
   const [layers, setLayers] = useState({
     dem: true,
@@ -37,13 +39,24 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
       </div>
 
       {/* QGIS-Style Layer Control Panel (Right Sidebar) */}
-      <div className="w-72 bg-white border-l border-gray-200 shadow-sm flex flex-col shrink-0 z-20">
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-800">Map Layers</h3>
+      {/* QGIS-Style Layer Control Panel (Right Sidebar) */}
+      <div className={`transition-all duration-300 ${isPanelOpen ? 'w-72' : 'w-16'} bg-white border-l border-gray-200 shadow-sm flex flex-col shrink-0 z-20 relative`}>
+        {/* Toggle Button */}
+        <button 
+          onClick={() => setIsPanelOpen(!isPanelOpen)}
+          className="absolute -left-3 top-6 bg-white border border-gray-200 text-gray-600 rounded-full p-1 shadow-md z-50 hover:bg-gray-50 transition-colors"
+        >
+          {isPanelOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+
+        <div className={`p-4 border-b border-gray-100 bg-gray-50/50 flex items-center ${isPanelOpen ? 'gap-2' : 'justify-center'} overflow-hidden whitespace-nowrap`}>
+          <Layers className="w-5 h-5 text-gray-600 shrink-0" />
+          {isPanelOpen && <h3 className="font-semibold text-gray-800">Map Layers</h3>}
         </div>
         
-        <div className="p-4 flex-1 overflow-y-auto space-y-4">
+        {isPanelOpen && (
+          <>
+            <div className="p-4 flex-1 overflow-y-auto space-y-4">
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Base Topography</h4>
             <label className="flex items-center gap-3 cursor-pointer group">
@@ -69,18 +82,20 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
           </div>
         </div>
 
-        {/* Action Bottom */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-          <button 
-            onClick={onSimulate}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition-colors shadow-sm flex justify-center items-center gap-2"
-          >
-            {status === "Running Simulation..." ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : <Navigation className="w-4 h-4" />}
-            {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
-          </button>
-        </div>
+            {/* Action Bottom */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+              <button 
+                onClick={onSimulate}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition-colors shadow-sm flex justify-center items-center gap-2"
+              >
+                {status === "Running Simulation..." ? (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : <Navigation className="w-4 h-4" />}
+                {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
