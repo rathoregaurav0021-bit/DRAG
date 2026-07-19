@@ -9,11 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "encoding": "^0.1.13",
     "georaster": "^1.6.0",
     "georaster-layer-for-leaflet": "^4.1.2",
     "leaflet": "^1.9.4",
-    "lucide-react": "^1.25.0",
-    "next": "^14",
+    "next": "^14.2.35",
     "papaparse": "^5.5.4",
     "proj4": "^2.20.9",
     "react": "^18",
