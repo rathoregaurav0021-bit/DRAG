@@ -204,6 +204,7 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
         zoom={13} 
         className="h-full w-full"
         zoomControl={false}
+        attributionControl={false}
       >
         <ZoomControl position="bottomright" />
         <ResetViewButton center={bhuragaonPosition} zoom={13} />
