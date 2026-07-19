@@ -115,9 +115,32 @@ const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   return null;
 };
 
+const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: number }) => {
+  const map = useMap();
+  return (
+    <button 
+      onClick={(e) => { 
+        e.preventDefault(); 
+        map.flyTo(center, zoom, { duration: 1.5 }); 
+      }}
+      className="absolute bottom-[42px] right-[65px] z-[1000] cursor-pointer"
+      title="Recenter Map"
+    >
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700 hover:text-blue-600 transition-colors drop-shadow-md">
+        <circle cx="12" cy="12" r="5" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+        <line x1="12" y1="2" x2="12" y2="5" />
+        <line x1="12" y1="19" x2="12" y2="22" />
+        <line x1="2" y1="12" x2="5" y2="12" />
+        <line x1="19" y1="12" x2="22" y2="12" />
+      </svg>
+    </button>
+  );
+};
+
 export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, hoveredRainfall?: number | null }) {
   // Exact center of Bhuragaon, Assam based on GeoJSON limits
-  const bhuragaonPosition: [number, number] = [26.386, 92.302]; 
+  const bhuragaonPosition: [number, number] = [26.3715, 92.267]; 
   
   const [roadsData, setRoadsData] = useState(null);
   const [sheltersData, setSheltersData] = useState(null);
@@ -134,6 +157,43 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
 
   return (
     <div className="h-full w-full relative z-0">
+      <style>{`
+        /* Modern Leaflet Zoom Controls */
+        .leaflet-control-zoom.leaflet-bar {
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            border-radius: 0.75rem !important;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background-color: #e5e7eb;
+        }
+        .leaflet-control-zoom.leaflet-bar a {
+            width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            color: #4b5563 !important;
+            font-size: 1.25rem !important;
+            font-weight: 500 !important;
+            border: none !important;
+            transition: all 0.2s ease-in-out !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .leaflet-control-zoom.leaflet-bar a:hover {
+            background-color: #ffffff !important;
+            color: #2563eb !important;
+        }
+        .leaflet-control-zoom.leaflet-bar a:focus {
+            outline: none !important;
+        }
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            text-indent: 0 !important;
+        }
+      `}</style>
       {hoveredRainfall !== undefined && hoveredRainfall !== null && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white/90 text-blue-600 px-6 py-2 rounded-full shadow-2xl font-bold z-[9999] border border-blue-200 pointer-events-none transition-all">
           Map Engine Received Rainfall: {hoveredRainfall} mm
@@ -146,6 +206,7 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
         zoomControl={false}
       >
         <ZoomControl position="bottomright" />
+        <ResetViewButton center={bhuragaonPosition} zoom={13} />
         
         {/* Base Map Layer */}
         <TileLayer
