@@ -27,7 +27,39 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
   // Rainfall Data State
   const [rainfallData, setRainfallData] = useState<any[] | null>(null);
   const [hoveredRainfall, setHoveredRainfall] = useState<number | null>(null);
+  const [isSimulatingWflow, setIsSimulatingWflow] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleWflowSimulate = async () => {
+    if (!rainfallData) return;
+    setIsSimulatingWflow(true);
+    
+    try {
+      const csvString = Papa.unparse(rainfallData);
+      const response = await fetch('/api/wflow/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csv_data: csvString })
+      });
+      
+      const result = await response.json();
+      if (result.status === 'success') {
+        // Replace existing rainfall data with enriched Wflow data
+        setRainfallData(result.data);
+        alert("Success! WFlow Engine generated the Surface Runoff data!");
+      } else {
+        console.error("Wflow error:", result.message);
+        alert("WFlow API Error: " + result.message);
+      }
+    } catch (e: any) {
+      console.error(e);
+      alert("Network Error: Could not reach the FastAPI server. " + e.message);
+    } finally {
+      setIsSimulatingWflow(false);
+      // Trigger parent onSimulate if needed for ANUGA later
+      if (onSimulate) onSimulate();
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -119,7 +151,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
                   />
                   <YAxis tick={{fontSize: 12, fill: '#6b7280'}} axisLine={false} tickLine={false} width={30} />
                   <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#9ca3af', strokeWidth: 1, strokeDasharray: '3 3' }} />
-                  <Area type="monotone" dataKey="precipitation" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRain)" />
+                  <Area type="monotone" dataKey="precipitation" name="Rainfall (mm)" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRain)" />
+                  <Area type="monotone" dataKey="discharge" name="Surface Runoff (mm)" stroke="#16a34a" strokeWidth={3} fillOpacity={0.6} fill="#bbf7d0" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -188,13 +221,16 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
         {/* Action Bottom */}
         <div className="p-4 border-t border-gray-100 bg-gray-50/50">
           <button 
-            onClick={onSimulate}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition-colors shadow-sm flex justify-center items-center gap-2"
+            onClick={handleWflowSimulate}
+            disabled={!rainfallData || isSimulatingWflow}
+            className={`w-full text-white py-2.5 rounded-xl font-medium transition-colors shadow-sm flex justify-center items-center gap-2 ${!rainfallData || isSimulatingWflow ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            {status === "Running Simulation..." ? (
+            {isSimulatingWflow || status === "Running Simulation..." ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : <Navigation className="w-4 h-4" />}
-            {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
+            ) : (
+              <Navigation className="w-4 h-4" />
+            )}
+            {isSimulatingWflow ? 'Running Wflow Engine...' : 'Run AI Simulation'}
           </button>
         </div>
       </div>

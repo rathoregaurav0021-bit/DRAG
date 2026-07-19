@@ -40,8 +40,8 @@ const PrecipitationHeatmap = ({ rainfall }: { rainfall: number | null }) => {
   else if (rainfall < 100) color = '#f97316'; // Orange
   else color = '#ef4444'; // Red
 
-  // Exact bounding box calculated from the Bhuragaon Road Network GeoJSON
-  const bounds: [number, number][] = [[26.314, 92.200], [26.458, 92.404]];
+  // Exact bounding box matching the Bhuragaon DEM Raster image
+  const bounds: [number, number][] = [[26.322, 92.192], [26.421, 92.342]];
 
   return (
     <Rectangle 
