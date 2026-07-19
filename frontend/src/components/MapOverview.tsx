@@ -28,74 +28,58 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
   };
 
   return (
-    <div className="flex h-full w-full bg-gray-50 overflow-hidden">
-      {/* Map Area (Main Content) */}
-      <div className="flex-1 relative flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-gray-200">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-400 via-gray-200 to-transparent"></div>
-        
-        {/* Interactive Leaflet Map */}
+    <div className="relative flex h-full w-full bg-transparent overflow-hidden">
+      {/* Interactive Leaflet Map (Base Layer) */}
+      <div className="absolute inset-0 z-0 bg-slate-950" style={{ '--panel-offset': isPanelOpen ? '340px' : '90px' } as React.CSSProperties}>
         <LeafletMap layers={layers} />
-
       </div>
 
-      {/* QGIS-Style Layer Control Panel (Right Sidebar) */}
-      {/* QGIS-Style Layer Control Panel (Right Sidebar) */}
-      <div className={`transition-all duration-300 ${isPanelOpen ? 'w-72' : 'w-16'} bg-white border-l border-gray-200 shadow-sm flex flex-col shrink-0 z-20 relative`}>
+      {/* Floating Toolbar (Bottom Left) - Horizontal Unfold */}
+      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-[800px] w-max' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
+        
         {/* Toggle Button */}
         <button 
           onClick={() => setIsPanelOpen(!isPanelOpen)}
-          className="absolute -left-3 top-6 bg-white border border-gray-200 text-gray-600 rounded-full p-1 shadow-md z-50 hover:bg-gray-50 transition-colors"
+          className="flex-shrink-0 w-[52px] h-[52px] flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors rounded-full"
+          title="Toggle Layers"
         >
-          {isPanelOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {isPanelOpen ? <ChevronLeft className="w-5 h-5" /> : <Layers className="w-6 h-6" />}
         </button>
 
-        <div className={`p-4 border-b border-gray-100 bg-gray-50/50 flex items-center ${isPanelOpen ? 'gap-2' : 'justify-center'} overflow-hidden whitespace-nowrap`}>
-          <Layers className="w-5 h-5 text-gray-600 shrink-0" />
-          {isPanelOpen && <h3 className="font-semibold text-gray-800">Map Layers</h3>}
-        </div>
-        
-        {isPanelOpen && (
-          <>
-            <div className="p-4 flex-1 overflow-y-auto space-y-4">
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Base Topography</h4>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" checked={layers.dem} onChange={() => toggleLayer('dem')} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
-              <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">DEM (Bhuragaon)</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" checked={layers.roads} onChange={() => toggleLayer('roads')} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
-              <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">OSM Road Network</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" checked={layers.shelters} onChange={() => toggleLayer('shelters')} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
-              <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">Safe Shelters</span>
-            </label>
-          </div>
+        {/* Toolbar Content */}
+        <div className={`flex items-center gap-2 whitespace-nowrap transition-opacity duration-300 pr-2 ${isPanelOpen ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className="w-px h-6 bg-gray-200 mx-1"></div>
           
-          <div className="pt-4 border-t border-gray-100 space-y-3">
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Simulation Outputs</h4>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" checked={layers.floodDepth} onChange={() => toggleLayer('floodDepth')} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
-              <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors">Flood Depth Raster</span>
-            </label>
-          </div>
+          {/* Layer Toggles */}
+          {[
+            { id: 'dem', label: 'DEM' },
+            { id: 'roads', label: 'Roads' },
+            { id: 'shelters', label: 'Shelters' },
+            { id: 'floodDepth', label: 'Flood Depth' }
+          ].map(item => (
+            <button 
+              key={item.id} 
+              onClick={() => toggleLayer(item.id as keyof typeof layers)}
+              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold flex items-center gap-2 border transition-all ${layers[item.id as keyof typeof layers] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-200'}`}
+            >
+              <div className={`w-2 h-2 rounded-full ${layers[item.id as keyof typeof layers] ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              {item.label}
+            </button>
+          ))}
+          
+          <div className="w-px h-6 bg-gray-200 mx-2"></div>
+          
+          {/* Simulate Button */}
+          <button 
+            onClick={onSimulate}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-full text-[13px] font-bold flex items-center gap-2 shadow-sm transform active:scale-95 transition-all"
+          >
+            {status === "Running Simulation..." ? (
+              <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+            ) : <Navigation className="w-4 h-4" />}
+            {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
+          </button>
         </div>
-
-            {/* Action Bottom */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-              <button 
-                onClick={onSimulate}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition-colors shadow-sm flex justify-center items-center gap-2"
-              >
-                {status === "Running Simulation..." ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                ) : <Navigation className="w-4 h-4" />}
-                {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
-              </button>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

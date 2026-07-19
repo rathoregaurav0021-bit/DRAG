@@ -123,10 +123,11 @@ const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: num
         e.preventDefault(); 
         map.flyTo(center, zoom, { duration: 1.5 }); 
       }}
-      className="absolute bottom-[42px] right-[65px] z-[1000] cursor-pointer"
+      className="absolute z-[1000] cursor-pointer bg-white/95 hover:bg-white rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] flex items-center justify-center w-[36px] h-[36px]"
+      style={{ right: '68px', bottom: '42.5px' }}
       title="Recenter Map"
     >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700 hover:text-blue-600 transition-colors drop-shadow-md">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 hover:text-blue-600 transition-colors">
         <circle cx="12" cy="12" r="5" />
         <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
         <line x1="12" y1="2" x2="12" y2="5" />
@@ -192,6 +193,12 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
         }
         .leaflet-control-zoom-in, .leaflet-control-zoom-out {
             text-indent: 0 !important;
+        }
+        .leaflet-bottom .leaflet-control {
+            margin-bottom: 24px !important;
+        }
+        .leaflet-right .leaflet-control {
+            margin-right: 24px !important;
         }
       `}</style>
       {hoveredRainfall !== undefined && hoveredRainfall !== null && (
