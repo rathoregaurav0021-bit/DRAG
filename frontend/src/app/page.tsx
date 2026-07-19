@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
-import { LayoutDashboard, History, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, History, Settings, LogOut, CloudRain } from 'lucide-react';
 import MapOverview from '@/components/MapOverview';
+import RainfallDashboard from '@/components/RainfallDashboard';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -30,6 +31,7 @@ export default function Home() {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'meteorology', label: 'Rainfall Setup', icon: CloudRain },
     { id: 'simulations', label: 'Simulations', icon: History },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -94,6 +96,14 @@ export default function Home() {
         <div className="flex-1 relative overflow-hidden">
           {activeTab === 'overview' && (
              <MapOverview 
+                status={status} 
+                recommendation={recommendation} 
+                onSimulate={handleSimulate} 
+             />
+          )}
+
+          {activeTab === 'meteorology' && (
+             <RainfallDashboard 
                 status={status} 
                 recommendation={recommendation} 
                 onSimulate={handleSimulate} 

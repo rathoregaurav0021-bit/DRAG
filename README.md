@@ -73,6 +73,16 @@ The backend handles the heavy lifting, including data fetching (OpenStreetMap, W
      pip install anuga
      ```
 
+6. Install Wflow.jl (Hydrological Routing Engine):
+   Wflow is a highly optimized mathematical routing engine written in Julia. To integrate it into our Python pipeline:
+   * **Install Julia:** Download it from [julialang.org](https://julialang.org/downloads/) or run `winget install julia -s msstore` on Windows.
+   * **Install Wflow:** Open your terminal, type `julia` to enter the Julia REPL, and run:
+     ```julia
+     using Pkg
+     Pkg.add("Wflow")
+     ```
+   * **Install the Python Connector:** In your Python virtual environment, run `pip install juliacall` so our Python backend scripts can talk directly to the Wflow engine.
+
 ### Automated Pipeline Execution (Recommended)
 Instead of running scripts individually, use the master automation script. This script automatically:
 1. Initializes the PostGIS database.

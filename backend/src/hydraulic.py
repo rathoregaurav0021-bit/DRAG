@@ -5,10 +5,10 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 
 def run_simulation(dem_file: str = None):
-    \"\"\"
+    """
     ANUGA Hydraulic Simulation pipeline.
     Simulates flood inundation over a 2D mesh.
-    \"\"\"
+    """
     print("=== Starting ANUGA Simulation Pipeline ===")
     
     try:

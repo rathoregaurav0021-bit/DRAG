@@ -13,7 +13,7 @@ const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
 });
 
 export default function MapOverview({ status, recommendation, onSimulate }: any) {
-  // Mock layers for the GIS dashboard (we will connect these to real Leaflet layers later)
+  // Mock layers for the GIS dashboard
   const [layers, setLayers] = useState({
     dem: true,
     roads: true,

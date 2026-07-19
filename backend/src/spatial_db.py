@@ -18,9 +18,9 @@ def check_connection():
         return False
 
 def ingest_geojson_to_postgis(geojson_path: str, table_name: str):
-    \"\"\"
+    """
     Reads a GeoJSON file and ingests it into the PostGIS database.
-    \"\"\"
+    """
     if not os.path.exists(geojson_path):
         print(f" -> Error: File {geojson_path} does not exist. Cannot ingest.")
         return False

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap, ImageOverlay } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap, ImageOverlay, useMapEvents, Circle, Rectangle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import parseGeoraster from 'georaster';
@@ -14,6 +14,74 @@ const icon = L.icon({
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
+
+const PrecipitationHeatmap = ({ rainfall }: { rainfall: number | null }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    // Create a custom pane for the heatmap to guarantee it renders above ALL raster/vector layers
+    if (!map.getPane('heatmapPane')) {
+      map.createPane('heatmapPane');
+      const pane = map.getPane('heatmapPane');
+      if (pane) {
+        pane.style.zIndex = '650';
+        pane.style.pointerEvents = 'none';
+      }
+    }
+  }, [map]);
+
+  if (rainfall === null || rainfall === 0) return null;
+  
+  let color = 'transparent';
+  let opacity = Math.min(0.8, 0.3 + (rainfall / 200));
+  
+  if (rainfall < 20) color = '#22c55e'; // Green
+  else if (rainfall < 60) color = '#eab308'; // Yellow
+  else if (rainfall < 100) color = '#f97316'; // Orange
+  else color = '#ef4444'; // Red
+
+  // Exact bounding box calculated from the Bhuragaon Road Network GeoJSON
+  const bounds: [number, number][] = [[26.314, 92.200], [26.458, 92.404]];
+
+  return (
+    <Rectangle 
+       key={`heatmap-${rainfall}`}
+       bounds={bounds} 
+       pathOptions={{ fillColor: color, fillOpacity: opacity, stroke: false, pane: 'heatmapPane' }} 
+    />
+  );
+};
+
+const MapClickHandler = () => {
+  const [clickPos, setClickPos] = useState<[number, number] | null>(null);
+  useMapEvents({
+    click(e) {
+      setClickPos([e.latlng.lat, e.latlng.lng]);
+    },
+  });
+
+  if (!clickPos) return null;
+
+  return (
+    <>
+      <Circle 
+        center={clickPos} 
+        radius={2500} 
+        pathOptions={{ fillColor: '#3b82f6', fillOpacity: 0.3, color: 'transparent', className: 'animate-pulse' }} 
+      />
+      <Circle 
+        center={clickPos} 
+        radius={1000} 
+        pathOptions={{ fillColor: '#1e40af', fillOpacity: 0.6, color: 'transparent' }} 
+      >
+        <Popup>
+           <strong className="text-blue-800">Simulated Rain Cell Epicenter</strong><br/>
+           Coordinates: {clickPos[0].toFixed(4)}, {clickPos[1].toFixed(4)}
+        </Popup>
+      </Circle>
+    </>
+  );
+};
 
 const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   const map = useMap();
@@ -47,9 +115,9 @@ const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   return null;
 };
 
-export default function LeafletMap({ layers }: { layers: any }) {
-  // Approximate center of Bhuragaon, Assam
-  const bhuragaonPosition: [number, number] = [26.26, 92.22]; 
+export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, hoveredRainfall?: number | null }) {
+  // Exact center of Bhuragaon, Assam based on GeoJSON limits
+  const bhuragaonPosition: [number, number] = [26.386, 92.302]; 
   
   const [roadsData, setRoadsData] = useState(null);
   const [sheltersData, setSheltersData] = useState(null);
@@ -65,11 +133,16 @@ export default function LeafletMap({ layers }: { layers: any }) {
   }, []);
 
   return (
-    <div className="w-full h-full absolute inset-0 z-0">
+    <div className="h-full w-full relative z-0">
+      {hoveredRainfall !== undefined && hoveredRainfall !== null && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-white/90 text-blue-600 px-6 py-2 rounded-full shadow-2xl font-bold z-[9999] border border-blue-200 pointer-events-none transition-all">
+          Map Engine Received Rainfall: {hoveredRainfall} mm
+        </div>
+      )}
       <MapContainer 
         center={bhuragaonPosition} 
-        zoom={12} 
-        style={{ height: '100%', width: '100%' }}
+        zoom={13} 
+        className="h-full w-full"
         zoomControl={false}
       >
         <ZoomControl position="bottomright" />
@@ -111,6 +184,12 @@ export default function LeafletMap({ layers }: { layers: any }) {
             }} 
           />
         )}
+
+        {/* Dynamic Rainfall Click Overlay */}
+        <MapClickHandler />
+
+        {/* Global Precipitation Heatmap (Driven by Timeline Hover) */}
+        <PrecipitationHeatmap rainfall={hoveredRainfall ?? null} />
       </MapContainer>
     </div>
   );
