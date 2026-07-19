@@ -17,14 +17,23 @@ __pycache__/
 .ipynb_checkpoints
 
 # GIS Data (large files)
-data/
-*.tif
+backend/data/raw/
+backend/data/processed/
 *.gpkg
-*.geojson
 *.shp
 *.shx
 *.dbf
 *.prj
+
+# Ignore massive TIFFs and GeoJSONs globally...
+*.tif
+*.geojson
+
+# ...but ALLOW the tiny, optimized web-data in the frontend
+!frontend/public/data/
+!frontend/public/data/*.tif
+!frontend/public/data/*.geojson
+!frontend/public/data/*.png
 
 # OS generated files
 .DS_Store
