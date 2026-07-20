@@ -90,57 +90,13 @@ export default function Home() {
           })}
         </div>
 
-        {/* Bottom Profile/Logout */}
-        <div className="flex flex-col items-center gap-4 mt-auto mb-2 relative w-full">
-          <button className="w-10 h-10 bg-teal-700 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:shadow-lg transition-shadow">
-            U
-          </button>
-          
-          <div className="relative group flex flex-col items-center w-full mt-2">
-            <button className="text-gray-400 hover:bg-red-50 hover:text-red-500 p-2.5 rounded-full transition-colors">
-              <LogOut className="w-5 h-5" strokeWidth={2} />
-            </button>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1 bg-gray-800 text-white text-xs font-semibold rounded-md shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-nowrap">
-              Sign Out
-            </div>
-          </div>
-        </div>
+        {/* Bottom Profile/Logout Removed */}
       </aside>
 
       {/* Main Content Area */}
       <section className="flex-1 flex flex-col relative overflow-hidden bg-[#e5e3df]">
         
-        {/* Floating Top Bar (Google Maps Search Bar Style) */}
-        <div className="absolute top-6 left-6 z-[40] flex items-center gap-3">
-          <div 
-            className="group relative"
-            onMouseEnter={() => setIsTopMenuOpen(true)}
-            onMouseLeave={() => setIsTopMenuOpen(false)}
-          >
-            <div className={`flex items-center bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out overflow-hidden ${isTopMenuOpen ? 'max-w-[400px] w-max' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
-              <button className="flex-shrink-0 w-[52px] h-[52px] flex items-center justify-center text-[#2A3F5A] hover:bg-gray-50 transition-colors rounded-full">
-                 <CustomFloodIcon className="w-8 h-8" />
-              </button>
-              <div className={`flex items-center gap-2 whitespace-nowrap transition-opacity duration-300 pr-2 ${isTopMenuOpen ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none'}`}>
-                 <div className="w-px h-6 bg-gray-200 mx-1"></div>
-                 <button 
-                   onClick={() => setActiveTab('meteorology')}
-                   className="px-3 py-1.5 rounded-full text-[13px] font-semibold flex items-center gap-2 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all"
-                 >
-                    <CloudRain className="w-4 h-4"/> AI Forecast
-                 </button>
-                 <button 
-                   onClick={() => setActiveTab('simulations')}
-                   className="px-3 py-1.5 rounded-full text-[13px] font-semibold flex items-center gap-2 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all"
-                 >
-                    <History className="w-4 h-4"/> Past Logs
-                 </button>
-              </div>
-            </div>
-          </div>
-
-
-        </div>
+        {/* Floating Top Bar Removed */}
 
         {/* Dynamic Content Views */}
         <div className="flex-1 relative overflow-hidden bg-transparent">
