@@ -52,36 +52,6 @@ const PrecipitationHeatmap = ({ rainfall }: { rainfall: number | null }) => {
   );
 };
 
-const MapClickHandler = () => {
-  const [clickPos, setClickPos] = useState<[number, number] | null>(null);
-  useMapEvents({
-    click(e) {
-      setClickPos([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-
-  if (!clickPos) return null;
-
-  return (
-    <>
-      <Circle 
-        center={clickPos} 
-        radius={2500} 
-        pathOptions={{ fillColor: '#3b82f6', fillOpacity: 0.3, color: 'transparent', className: 'animate-pulse' }} 
-      />
-      <Circle 
-        center={clickPos} 
-        radius={1000} 
-        pathOptions={{ fillColor: '#1e40af', fillOpacity: 0.6, color: 'transparent' }} 
-      >
-        <Popup>
-           <strong className="text-blue-800">Simulated Rain Cell Epicenter</strong><br/>
-           Coordinates: {clickPos[0].toFixed(4)}, {clickPos[1].toFixed(4)}
-        </Popup>
-      </Circle>
-    </>
-  );
-};
 
 const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   const map = useMap();
@@ -228,11 +198,20 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
         )}
 
         {/* Raster Layer: Land Use / Land Cover (ESA WorldCover) */}
-        {layers.floodDepth && ( // Temporarily mapping floodDepth toggle to LULC for visualization
+        {layers.lulc && (
           <ImageOverlay 
             url="/data/lulc_color.png" 
-            bounds={[[26.302083333333332, 92.172], [26.441333333333333, 92.36266666666667]]}
-            opacity={0.55}
+            bounds={[[26.302083, 92.172], [26.441333, 92.362]]}
+            opacity={0.65}
+          />
+        )}
+
+        {/* Raster Layer: ANUGA Flood Depth */}
+        {layers.floodDepth && (
+          <ImageOverlay 
+            url={`/data/flood_depth.png?t=${new Date().getTime()}`}
+            bounds={[[26.322, 92.192], [26.421, 92.342]]}
+            opacity={0.7}
           />
         )}
 
@@ -254,8 +233,6 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
           />
         )}
 
-        {/* Dynamic Rainfall Click Overlay */}
-        <MapClickHandler />
 
         {/* Global Precipitation Heatmap (Driven by Timeline Hover) */}
         <PrecipitationHeatmap rainfall={hoveredRainfall ?? null} />

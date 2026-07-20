@@ -21,6 +21,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
   // Mock layers for the GIS dashboard
   const [layers, setLayers] = useState({
     dem: true,
+    lulc: false,
     roads: true,
     floodDepth: false,
     shelters: true
@@ -48,6 +49,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
       if (result.status === 'success') {
         // Replace existing rainfall data with enriched Wflow data
         setRainfallData(result.data);
+        // Success! Auto-toggle the Flood Depth layer so the user sees the physics instantly!
+        setLayers(prev => ({ ...prev, floodDepth: true }));
         alert("Success! WFlow Engine generated the Surface Runoff data!");
       } else {
         console.error("Wflow error:", result.message);
@@ -163,8 +166,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
         </div>
       )}
 
-      {/* Floating Toolbar (Bottom Left) - Horizontal Unfold */}
-      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-[800px] w-max' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
+      {/* Layer Toggles Toolbar (Bottom Left) */}
+      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-fit px-2' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
         
         {/* Toggle Button */}
         <button 
@@ -182,6 +185,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
           {/* Layer Toggles */}
           {[
             { id: 'dem', label: 'DEM' },
+            { id: 'lulc', label: 'World Cover' },
             { id: 'roads', label: 'Roads' },
             { id: 'shelters', label: 'Shelters' },
             { id: 'floodDepth', label: 'Flood Depth' }
@@ -195,9 +199,11 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
               {item.label}
             </button>
           ))}
-          
-          <div className="w-px h-6 bg-gray-200 mx-2"></div>
-          
+        </div>
+      </div>
+
+      {/* Actions Toolbar (Top Right) */}
+      <div className="absolute right-6 top-6 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 px-3 py-2 flex items-center gap-3">
           {/* File Upload for Rainfall Dashboard */}
           <input 
              type="file" 
@@ -208,25 +214,22 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
           />
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-1.5 rounded-full text-[13px] font-semibold flex items-center gap-2 border border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all"
+            className="px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-2 border border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all"
             title="Upload CSV Hyetograph"
           >
-            <Upload className="w-4 h-4" /> Upload
+            <Upload className="w-4 h-4" /> Upload CSV
           </button>
-
-          <div className="w-px h-6 bg-gray-200 mx-2"></div>
           
           {/* Simulate Button */}
           <button 
             onClick={handleWflowSimulate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-full text-[13px] font-bold flex items-center gap-2 shadow-sm transform active:scale-95 transition-all"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full text-[13px] font-bold flex items-center gap-2 shadow-sm transform active:scale-95 transition-all"
           >
             {isSimulatingWflow || status === "Running Simulation..." ? (
               <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
             ) : <Navigation className="w-4 h-4" />}
             {isSimulatingWflow ? "Simulating..." : "Run AI Simulation"}
           </button>
-        </div>
       </div>
     </div>
   );

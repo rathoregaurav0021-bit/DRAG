@@ -18,6 +18,7 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
   // Mock layers for the GIS dashboard
   const [layers, setLayers] = useState({
     dem: true,
+    lulc: false,
     roads: true,
     floodDepth: false,
     shelters: true
@@ -53,6 +54,7 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
           {/* Layer Toggles */}
           {[
             { id: 'dem', label: 'DEM' },
+            { id: 'lulc', label: 'World Cover' },
             { id: 'roads', label: 'Roads' },
             { id: 'shelters', label: 'Shelters' },
             { id: 'floodDepth', label: 'Flood Depth' }
@@ -66,19 +68,6 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
               {item.label}
             </button>
           ))}
-          
-          <div className="w-px h-6 bg-gray-200 mx-2"></div>
-          
-          {/* Simulate Button */}
-          <button 
-            onClick={onSimulate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-full text-[13px] font-bold flex items-center gap-2 shadow-sm transform active:scale-95 transition-all"
-          >
-            {status === "Running Simulation..." ? (
-              <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-            ) : <Navigation className="w-4 h-4" />}
-            {status === "Running Simulation..." ? "Simulating..." : "Run AI Simulation"}
-          </button>
         </div>
       </div>
     </div>
