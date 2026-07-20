@@ -26,13 +26,14 @@ def health_check():
 
 class SimulationRequest(BaseModel):
     csv_data: str
+    soil_moisture: str = "Normal"
 
 @app.post("/api/wflow/simulate")
 def run_wflow_simulation(req: SimulationRequest):
     import json
     try:
         # Step 1: Wflow (Hydrology)
-        results = calculate_runoff(req.csv_data)
+        results = calculate_runoff(req.csv_data, req.soil_moisture)
         
         # Step 2: ANUGA (Hydraulics)
         run_anuga_simulation(json.dumps(results))

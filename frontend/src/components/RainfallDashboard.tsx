@@ -31,6 +31,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
   const [rainfallData, setRainfallData] = useState<any[] | null>(null);
   const [hoveredRainfall, setHoveredRainfall] = useState<number | null>(null);
   const [isSimulatingWflow, setIsSimulatingWflow] = useState(false);
+  const [soilMoisture, setSoilMoisture] = useState("Normal");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleWflowSimulate = async () => {
@@ -42,7 +43,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
       const response = await fetch('/api/wflow/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csv_data: csvString })
+        body: JSON.stringify({ csv_data: csvString, soil_moisture: soilMoisture })
       });
       
       const result = await response.json();
@@ -204,6 +205,21 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
 
       {/* Actions Toolbar (Top Right) */}
       <div className="absolute right-6 top-6 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 px-3 py-2 flex items-center gap-3">
+          
+          {/* Soil Moisture Dropdown */}
+          <div className="flex items-center gap-2 border-r border-gray-200 pr-3">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Groundwater:</span>
+            <select 
+              value={soilMoisture}
+              onChange={(e) => setSoilMoisture(e.target.value)}
+              className="text-[13px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 outline-none hover:border-blue-300 focus:border-blue-500 transition-colors cursor-pointer"
+            >
+              <option value="Dry">Dry (AMC I)</option>
+              <option value="Normal">Normal (AMC II)</option>
+              <option value="Saturated">Saturated (AMC III)</option>
+            </select>
+          </div>
+
           {/* File Upload for Rainfall Dashboard */}
           <input 
              type="file" 
