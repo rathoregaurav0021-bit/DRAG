@@ -131,3 +131,18 @@ Open **http://localhost:3000** in your browser.
 
 
 > **Note:** The frontend automatically proxies API calls to the Python backend on port 8000. Make sure the backend server (`uvicorn`) is running simultaneously!
+
+## Local LLM Setup (Ollama)
+
+This project uses a 100% local LLM for drafting emergency SMS messages in the SMS Dispatch Dashboard. We recommend using **Qwen** via Ollama.
+
+### Windows Installation:
+1. Download Ollama for Windows from [ollama.com](https://ollama.com/download/windows).
+2. Run the installer (OllamaSetup.exe).
+3. Once installed, open your command prompt (or PowerShell).
+4. Run the following command to download and start the **Qwen** model:
+   `powershell
+   ollama run qwen2.5:0.5b
+   `
+   *(Note: You can use qwen2.5:1.5b or qwen2.5:7b if your computer has more RAM/VRAM for better responses).*
+5. Ollama will automatically expose a local API at http://localhost:11434. The Next.js frontend and FastAPI backend are pre-configured to communicate with this endpoint automatically.

@@ -25,7 +25,17 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
   });
 
   const toggleLayer = (layer: keyof typeof layers) => {
-    setLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
+    setLayers(prev => {
+      const newState = { ...prev, [layer]: !prev[layer] };
+      // Make flood layers mutually exclusive for better visualization
+      if (layer === 'prePeakFlood' && newState.prePeakFlood) {
+        newState.peakFlood = false;
+      }
+      if (layer === 'peakFlood' && newState.peakFlood) {
+        newState.prePeakFlood = false;
+      }
+      return newState;
+    });
   };
 
   return (
@@ -36,7 +46,7 @@ export default function MapOverview({ status, recommendation, onSimulate }: any)
       </div>
 
       {/* Floating Toolbar (Bottom Left) - Horizontal Unfold */}
-      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-[800px] w-max' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
+      <div className={`absolute left-6 top-6 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-[800px] w-max' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
         
         {/* Toggle Button */}
         <button 

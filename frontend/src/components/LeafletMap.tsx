@@ -52,7 +52,6 @@ const PrecipitationHeatmap = ({ rainfall }: { rainfall: number | null }) => {
   );
 };
 
-
 const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   const map = useMap();
   useEffect(() => {
@@ -85,7 +84,18 @@ const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   return null;
 };
 
-const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: number }) => {
+  // Map Click Listener for User Location
+  const MapClickHandler = ({ setUserLocation }: { setUserLocation?: (loc: [number, number]) => void }) => {
+    useMapEvents({
+      click(e) {
+        if (setUserLocation) {
+          setUserLocation([e.latlng.lat, e.latlng.lng]);
+        }
+      }
+    });
+    return null;
+  };
+  const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: number }) => {
   const map = useMap();
   return (
     <button 
@@ -109,7 +119,7 @@ const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: num
   );
 };
 
-export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { layers: any, hoveredRainfall?: number | null, aiSafeSpots?: any[] }) {
+export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userLocation, setUserLocation, routeGeoJSON }: { layers: any, hoveredRainfall?: number | null, aiSafeSpots?: any[], userLocation?: [number, number] | null, setUserLocation?: (loc: [number, number]) => void, routeGeoJSON?: any }) {
   // Exact center of Bhuragaon, Assam based on GeoJSON limits
   const bhuragaonPosition: [number, number] = [26.3715, 92.267]; 
   
@@ -183,6 +193,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { l
         zoomControl={false}
         attributionControl={false}
       >
+        <MapClickHandler setUserLocation={setUserLocation} />
         <ZoomControl position="bottomright" />
         <ResetViewButton center={bhuragaonPosition} zoom={13} />
         
@@ -206,14 +217,24 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { l
           />
         )}
 
-        {/* Raster Layer: ANUGA Flood Depth */}
-        {layers.floodDepth && (
+        {/* Raster Layer: Pre-Peak Flood Depth */}
+        {layers.prePeakFlood && (
+          <ImageOverlay 
+            url={`/data/pre_peak_flood.png?t=${new Date().getTime()}`}
+            bounds={[[26.322, 92.192], [26.421, 92.342]]}
+            opacity={0.7}
+          />
+        )}
+
+        {/* Raster Layer: ANUGA Peak Flood Depth */}
+        {layers.peakFlood && (
           <ImageOverlay 
             url={`/data/flood_depth.png?t=${new Date().getTime()}`}
             bounds={[[26.322, 92.192], [26.421, 92.342]]}
             opacity={0.7}
           />
         )}
+
 
         {/* Vector Layer: Roads */}
         {layers.roads && roadsData && (
@@ -231,6 +252,20 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { l
           />
         )}
 
+                {/* User Location Marker */}
+        {userLocation && (
+          <Marker position={userLocation} icon={L.divIcon({ className: 'bg-transparent', html: '<div class="w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg animate-pulse"></div>', iconSize: [24,24], iconAnchor: [12,12] })}>
+            <Popup><strong>Your Start Location</strong></Popup>
+          </Marker>
+        )}
+
+        {/* Evacuation Route */}
+        {routeGeoJSON && (
+          <GeoJSON 
+            data={routeGeoJSON} 
+            style={{ color: '#10b981', weight: 4, dashArray: '5, 10', opacity: 0.9 }} 
+          />
+        )}
         {/* AI-Generated Safe Spots */}
         {layers.aiSafeSpots && aiSafeSpots && aiSafeSpots.length > 0 && (
           <LayerGroup>
@@ -249,7 +284,6 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { l
     </div>
   );
 }
-
 
 
 

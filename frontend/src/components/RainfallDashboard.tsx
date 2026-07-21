@@ -55,7 +55,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
         // Save the AI safe spots returned from the backend
         setAiSafeSpots(result.safe_spots || []);
         // Success! Auto-toggle the Flood Depth layer so the user sees the physics instantly!
-        setLayers(prev => ({ ...prev, floodDepth: true }));
+        setLayers(prev => ({ ...prev, peakFlood: true }));
         alert("Success! WFlow Engine generated the Surface Runoff data!");
       } else {
         console.error("Wflow error:", result.message);
@@ -94,7 +94,17 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
   };
 
   const toggleLayer = (layer: keyof typeof layers) => {
-    setLayers(prev => ({ ...prev, [layer]: !prev[layer] }));
+    setLayers(prev => {
+      const newState = { ...prev, [layer]: !prev[layer] };
+      // Make flood layers mutually exclusive for better visualization
+      if (layer === 'prePeakFlood' && newState.prePeakFlood) {
+        newState.peakFlood = false;
+      }
+      if (layer === 'peakFlood' && newState.peakFlood) {
+        newState.prePeakFlood = false;
+      }
+      return newState;
+    });
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -171,21 +181,21 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
         </div>
       )}
 
-      {/* Layer Toggles Toolbar (Bottom Left) */}
-      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 transition-all duration-500 ease-in-out flex items-center overflow-hidden ${isPanelOpen ? 'max-w-fit px-2' : 'max-w-[52px] w-[52px]'}`} style={{ height: '52px' }}>
+      {/* Layer Toggles Toolbar (Bottom Left - Vertical) */}
+      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-3xl border border-gray-100 transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isPanelOpen ? 'w-48 py-2' : 'w-[52px] h-[52px]'}`}>
         
         {/* Toggle Button */}
         <button 
           onClick={() => setIsPanelOpen(!isPanelOpen)}
-          className="flex-shrink-0 w-[52px] h-[52px] flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors rounded-full"
+          className="flex-shrink-0 w-[52px] h-[52px] flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors rounded-full self-start"
           title="Toggle Layers"
         >
-          {isPanelOpen ? <ChevronLeft className="w-5 h-5" /> : <Layers className="w-6 h-6" />}
+          {isPanelOpen ? <ChevronRight className="w-5 h-5" /> : <Layers className="w-6 h-6" />}
         </button>
 
         {/* Toolbar Content */}
-        <div className={`flex items-center gap-2 whitespace-nowrap transition-opacity duration-300 pr-2 ${isPanelOpen ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none'}`}>
-          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+        <div className={`flex flex-col gap-1 transition-opacity duration-300 px-2 pb-2 ${isPanelOpen ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none hidden'}`}>
+          <div className="h-px w-full bg-gray-200 my-1"></div>
           
           {/* Layer Toggles */}
           {[
@@ -193,16 +203,17 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
             { id: 'lulc', label: 'World Cover' },
             { id: 'roads', label: 'Roads' },
             { id: 'shelters', label: 'Shelters' },
-            { id: 'floodDepth', label: 'Flood Depth' },
+            { id: 'prePeakFlood', label: 'Pre-Peak Flood' },
+            { id: 'peakFlood', label: 'Peak Flood' },
             { id: 'aiSafeSpots', label: 'AI Safe Zones' }
           ].map(item => (
             <button 
               key={item.id} 
               onClick={() => toggleLayer(item.id as keyof typeof layers)}
-              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold flex items-center gap-2 border transition-all ${layers[item.id as keyof typeof layers] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-200'}`}
+              className={`w-full px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center gap-2 border transition-all ${layers[item.id as keyof typeof layers] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-200'}`}
             >
-              <div className={`w-2 h-2 rounded-full ${layers[item.id as keyof typeof layers] ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              {item.label}
+              <div className={`flex-shrink-0 w-2 h-2 rounded-full ${layers[item.id as keyof typeof layers] ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <span className="truncate">{item.label}</span>
             </button>
           ))}
         </div>
