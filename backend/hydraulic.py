@@ -5,6 +5,7 @@ import rasterio
 import matplotlib
 matplotlib.use('Agg') # MUST BE BEFORE pyplot to prevent FastAPI Thread Crashes!
 import matplotlib.pyplot as plt
+import scipy.ndimage as ndimage
 
 def run_anuga_simulation(discharge_data_json: str):
     """
@@ -63,5 +64,37 @@ def run_anuga_simulation(discharge_data_json: str):
     plt.savefig(out_path, transparent=True, bbox_inches='tight', pad_inches=0, dpi=300)
     plt.close()
     
-    print(f"ANUGA Simulation Complete. Exported max flood depth to {out_path}")
-    return True
+    # 5. Calculate AI Safe Spots (Centroids of large unflooded regions)
+    safe_spots = []
+    # Mask of safe areas (0 depth)
+    safe_mask = (depth_data == 0) & (dem_data > -9999)
+    
+    # Label contiguous blobs
+    labeled_array, num_features = ndimage.label(safe_mask)
+    
+    if num_features > 0:
+        sizes = ndimage.sum(safe_mask, labeled_array, range(1, num_features + 1))
+        
+        # Filter for large blobs (e.g. > 500 pixels for a massive safe zone)
+        min_blob_size = 100
+        for idx in range(1, num_features + 1):
+            if sizes[idx-1] > min_blob_size:
+                coords = np.argwhere(labeled_array == idx)
+                if len(coords) > 0:
+                    center_y, center_x = coords.mean(axis=0)
+                    
+                    # Convert pixel coordinates back to GPS
+                    lon, lat = src.xy(center_y, center_x)
+                    
+                    safe_spots.append({
+                        "lat": float(lat),
+                        "lng": float(lon),
+                        "area": float(sizes[idx-1])
+                    })
+                    
+    print(f"Peak discharge: {peak_discharge}, Flood level: {flood_level}, Num blobs: {num_features}"); print(f"ANUGA Simulation Complete. Exported max flood depth to {out_path}. Found {len(safe_spots)} Safe Zones.")
+    return safe_spots
+
+
+
+

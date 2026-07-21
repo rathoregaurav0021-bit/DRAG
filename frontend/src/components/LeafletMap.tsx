@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap, ImageOverlay, useMapEvents, Circle, Rectangle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, GeoJSON, useMap, ImageOverlay, useMapEvents, Circle, Rectangle, LayerGroup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import parseGeoraster from 'georaster';
@@ -109,7 +109,7 @@ const ResetViewButton = ({ center, zoom }: { center: [number, number], zoom: num
   );
 };
 
-export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, hoveredRainfall?: number | null }) {
+export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots }: { layers: any, hoveredRainfall?: number | null, aiSafeSpots?: any[] }) {
   // Exact center of Bhuragaon, Assam based on GeoJSON limits
   const bhuragaonPosition: [number, number] = [26.3715, 92.267]; 
   
@@ -227,16 +227,31 @@ export default function LeafletMap({ layers, hoveredRainfall }: { layers: any, h
         {layers.shelters && sheltersData && (
           <GeoJSON 
             data={sheltersData} 
-            pointToLayer={(feature, latlng) => {
-              return L.marker(latlng, { icon }).bindPopup(`<strong>Safe Shelter</strong><br/>${feature.properties.name || "Unknown Area"}`);
-            }} 
+            style={{ color: '#f59e0b', weight: 1, fillOpacity: 0.1 }} 
           />
         )}
 
-
-        {/* Global Precipitation Heatmap (Driven by Timeline Hover) */}
+        {/* AI-Generated Safe Spots */}
+        {layers.aiSafeSpots && aiSafeSpots && aiSafeSpots.length > 0 && (
+          <LayerGroup>
+            {aiSafeSpots.map((spot: any, index: number) => (
+          <Marker 
+            key={`safe-spot-${index}`} 
+            position={[spot.lat, spot.lng]}
+            icon={L.divIcon({ className: 'bg-transparent', html: '<div class="relative flex items-center justify-center w-14 h-14 group"><div class="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-30"></div><div class="absolute inset-2 bg-emerald-500/20 rounded-full border border-emerald-400/50 backdrop-blur-sm"></div><div class="relative z-10 w-7 h-7 bg-emerald-500 rounded-full border-2 border-white shadow-[0_0_15px_rgba(16,185,129,0.6)] flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div>', iconSize: [56, 56], iconAnchor: [28, 28] })}><Popup><div className="font-sans min-w-[160px]"><div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><strong className="text-emerald-800 text-[13px] tracking-wide uppercase">Verified Safe Zone</strong></div><div className="text-xs text-gray-600 mt-2 border-t pt-2 leading-relaxed"><span className="font-semibold text-gray-900">Area:</span> {Math.round(spot.area * 900).toLocaleString()} m²<br/><span className="font-semibold text-gray-900">Status:</span> Above Flood Level</div></div></Popup>
+          </Marker>
+            ))} 
+          </LayerGroup>
+        )}
+{/* Global Precipitation Heatmap (Driven by Timeline Hover) */}
         <PrecipitationHeatmap rainfall={hoveredRainfall ?? null} />
       </MapContainer>
     </div>
   );
 }
+
+
+
+
+
+

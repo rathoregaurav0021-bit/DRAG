@@ -36,8 +36,8 @@ def run_wflow_simulation(req: SimulationRequest):
         results = calculate_runoff(req.csv_data, req.soil_moisture)
         
         # Step 2: ANUGA (Hydraulics)
-        run_anuga_simulation(json.dumps(results))
+        safe_spots = run_anuga_simulation(json.dumps(results))
         
-        return {"status": "success", "data": results}
+        return {"status": "success", "data": results, "safe_spots": safe_spots}
     except Exception as e:
         return {"status": "error", "message": str(e)}

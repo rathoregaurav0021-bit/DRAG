@@ -24,7 +24,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
     lulc: false,
     roads: true,
     floodDepth: false,
-    shelters: true
+    shelters: true,
+    aiSafeSpots: true
   });
   
   // Rainfall Data State
@@ -32,6 +33,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
   const [hoveredRainfall, setHoveredRainfall] = useState<number | null>(null);
   const [isSimulatingWflow, setIsSimulatingWflow] = useState(false);
   const [soilMoisture, setSoilMoisture] = useState("Normal");
+  const [aiSafeSpots, setAiSafeSpots] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleWflowSimulate = async () => {
@@ -50,6 +52,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
       if (result.status === 'success') {
         // Replace existing rainfall data with enriched Wflow data
         setRainfallData(result.data);
+        // Save the AI safe spots returned from the backend
+        setAiSafeSpots(result.safe_spots || []);
         // Success! Auto-toggle the Flood Depth layer so the user sees the physics instantly!
         setLayers(prev => ({ ...prev, floodDepth: true }));
         alert("Success! WFlow Engine generated the Surface Runoff data!");
@@ -117,7 +121,7 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
     <div className="relative flex h-full w-full bg-transparent overflow-hidden">
       {/* Interactive Leaflet Map (Base Layer) */}
       <div className="absolute inset-0 z-0 bg-slate-950" style={{ '--panel-offset': isPanelOpen ? '340px' : '90px' } as React.CSSProperties}>
-        <LeafletMap layers={layers} hoveredRainfall={hoveredRainfall} />
+        <LeafletMap layers={layers} hoveredRainfall={hoveredRainfall} aiSafeSpots={aiSafeSpots} />
       </div>
 
       {/* Rainfall Timeline Overlay */}
@@ -189,7 +193,8 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
             { id: 'lulc', label: 'World Cover' },
             { id: 'roads', label: 'Roads' },
             { id: 'shelters', label: 'Shelters' },
-            { id: 'floodDepth', label: 'Flood Depth' }
+            { id: 'floodDepth', label: 'Flood Depth' },
+            { id: 'aiSafeSpots', label: 'AI Safe Zones' }
           ].map(item => (
             <button 
               key={item.id} 
