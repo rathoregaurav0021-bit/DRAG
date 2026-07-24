@@ -1,167 +1,200 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { Smartphone, ShieldAlert, Send, Bot, User, Loader2 } from 'lucide-react';
+import { Smartphone, Send, ShieldAlert, CheckCircle2, User, Bot, AlertTriangle, MessageSquare } from 'lucide-react';
 
 export default function SmsDashboard({ context }: { context?: any }) {
-  const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-  useEffect(scrollToBottom, [messages]);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [isSending, setIsSending] = useState(false);
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (context && messages.length === 0) {
-      handleChat(null, true);
-    }
+      if (context) {
+          if (context.phone_number) setPhoneNumber(context.phone_number);
+          if (context.message) setMessage(context.message);
+      }
   }, [context]);
 
-  const handleChat = async (e?: React.FormEvent | null, isInitial: boolean = false) => {
-    if (e) e.preventDefault();
-    if (!isInitial && !input.trim()) return;
+  useEffect(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory, isAiTyping]);
 
-    const userMessage = input.trim();
-    if (!isInitial) {
-      setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-      setInput("");
-    }
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
 
-    setIsLoading(true);
+    const userMsg = message;
+    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
+    setMessage('');
+    setIsAiTyping(true);
+
     try {
-      const response = await fetch('/api/llm/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: messages,
-          prompt: isInitial ? "" : userMessage,
-          context: context,
-          is_initial: isInitial
-        })
-      });
+        const response = await fetch('/api/llm/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: userMsg })
+        });
+        
+        const data = await response.json();
+        setIsAiTyping(false);
 
-      const result = await response.json();
-      if (result.status === 'success') {
-        setMessages(prev => [...prev, { role: 'assistant', content: result.message }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: "Error communicating with local LLM. Ensure Ollama is running." }]);
-      }
-    } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: "Network error trying to reach backend LLM endpoint." }]);
+        if (data.status === 'success') {
+            setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+        } else {
+            setChatHistory(prev => [...prev, { role: 'assistant', content: "Error: " + data.message, isError: true }]);
+        }
+    } catch (error) {
+        setIsAiTyping(false);
+        setChatHistory(prev => [...prev, { role: 'assistant', content: "Failed to reach AI Engine.", isError: true }]);
+    }
+  };
+
+  const handleDirectSms = async () => {
+    if (!phoneNumber.trim() || !message.trim()) return;
+    setIsSending(true);
+    try {
+        const res = await fetch('/api/sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone_number: phoneNumber, message: message })
+        });
+        const data = await res.json();
+        
+        if(res.ok) {
+            setChatHistory(prev => [...prev, { role: 'system', content: `SMS Dispatched to ${phoneNumber}` }]);
+            setMessage('');
+        } else {
+            setChatHistory(prev => [...prev, { role: 'system', content: `SMS Failed: ${data.detail}`, isError: true }]);
+        }
+    } catch (e) {
+        setChatHistory(prev => [...prev, { role: 'system', content: `Network Error while sending SMS.`, isError: true }]);
     } finally {
-      setIsLoading(false);
+        setIsSending(false);
     }
   };
 
   return (
-    <div className="flex h-full w-full bg-slate-100 p-8 gap-8">
-      
-      {/* Left Pane: Route Summary */}
-      <div className="w-1/3 bg-white rounded-3xl shadow-lg border border-gray-100 flex flex-col overflow-hidden">
-        <div className="bg-blue-600 p-6 text-white">
-            <div className="flex items-center gap-3 mb-2">
-                <Smartphone className="w-6 h-6 text-blue-200" />
-                <h2 className="text-xl font-bold">Dispatch Context</h2>
+    <div className="w-[340px] h-[520px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden">
+        
+        {/* Header */}
+        <div className="bg-[#233a77] p-4 flex items-center justify-between shrink-0 shadow-md z-10">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-full">
+                    <Smartphone className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                    <h2 className="text-white font-bold text-sm tracking-wide">Emergency Dispatch</h2>
+                    <p className="text-[#92cce5] text-[10px] font-medium flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Qwen 2.5 Local Agent
+                    </p>
+                </div>
             </div>
-            <p className="text-blue-100 text-sm opacity-90">Auto-filled from AI Evacuation tab</p>
-        </div>
-        
-        <div className="p-6 flex-1">
-            {context ? (
-                <div className="space-y-6">
-                    <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-100 flex items-start gap-3">
-                        <ShieldAlert className="w-5 h-5 mt-0.5 shrink-0" />
-                        <div>
-                            <div className="font-bold">Active Evacuation</div>
-                            <div className="text-sm opacity-90">Pre-Peak Flood Condition</div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Destination Safe Zone</div>
-                        <div className="text-xl font-black text-emerald-600">{context.destinationName}</div>
-                    </div>
-
-                    <div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Route Waypoints</div>
-                        <div className="text-sm font-mono text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 h-32 overflow-y-auto">
-                            {context.routeGeoJSON?.coordinates?.length || 0} GPS coordinates calculated.
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                    <Smartphone className="w-16 h-16 mb-4 text-gray-300" />
-                    <p className="text-lg font-bold text-gray-400">No Context Received</p>
-                    <p className="text-sm text-gray-400">Navigate here from the Safe Spot tab.</p>
-                </div>
-            )}
-        </div>
-      </div>
-
-      {/* Right Pane: LLM Chat UI */}
-      <div className="w-2/3 bg-white rounded-3xl shadow-lg border border-gray-100 flex flex-col overflow-hidden">
-        <div className="p-6 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <Bot className="w-6 h-6 text-blue-600" /> Local LLM Assistant
-            </h2>
-            <p className="text-sm text-gray-500">Drafting SMS via Ollama (Qwen)</p>
-        </div>
-        
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.length === 0 && !isLoading && (
-                <div className="text-center text-gray-400 mt-10">Waiting to initialize...</div>
-            )}
-            
-            {messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-gray-800 text-white' : 'bg-blue-100 text-blue-600'}`}>
-                        {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                    </div>
-                    <div className={`px-5 py-3 rounded-2xl max-w-[80%] whitespace-pre-wrap text-[15px] ${msg.role === 'user' ? 'bg-gray-100 text-gray-800 rounded-tr-sm' : 'bg-blue-600 text-white rounded-tl-sm shadow-md'}`}>
-                        {msg.content}
-                    </div>
-                </div>
-            ))}
-            {isLoading && (
-                <div className="flex gap-4">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                        <Bot className="w-4 h-4" />
-                    </div>
-                    <div className="px-5 py-3 rounded-2xl bg-blue-600 text-white rounded-tl-sm shadow-md flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" /> Drafting...
-                    </div>
-                </div>
-            )}
-            <div ref={messagesEndRef} />
         </div>
 
-        {/* Chat Input */}
-        <div className="p-4 bg-white border-t border-gray-100">
-            <form onSubmit={handleChat} className="relative">
+        {/* Action Bar (Direct SMS) */}
+        <div className="bg-[#e1f1ee]/50 p-3 border-b border-[#92cce5]/20 flex flex-col gap-2 shrink-0">
+            <div className="text-[10px] font-bold text-gray-400 uppercase">Direct SMS</div>
+            <div className="flex gap-2">
                 <input 
                     type="text" 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask the LLM to refine the SMS (e.g., 'Make it shorter')..."
-                    className="w-full bg-gray-50 border border-gray-200 rounded-full px-6 py-4 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    disabled={isLoading}
+                    placeholder="Recipient Number" 
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs border border-[#92cce5]/50 rounded-lg focus:outline-none focus:border-[#3f7ce0] bg-white text-[#233a77] font-semibold"
                 />
                 <button 
-                    type="submit" 
-                    disabled={isLoading || !input.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-all"
+                    onClick={handleDirectSms}
+                    disabled={isSending || !phoneNumber || !message}
+                    className={`px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all flex items-center gap-1 ${isSending || !phoneNumber || !message ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3f7ce0] hover:bg-[#233a77]'}`}
                 >
-                    <Send className="w-5 h-5" />
+                    {isSending ? "Sending..." : "Send SMS"}
                 </button>
-            </form>
+            </div>
         </div>
 
-      </div>
+        {/* Chat Area */}
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3">
+            
+            {/* Greeting */}
+            {chatHistory.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full text-center px-4 opacity-60">
+                    <MessageSquare className="w-10 h-10 text-[#233a77] mb-3 opacity-50" />
+                    <p className="text-xs font-semibold text-gray-500">
+                        Chat with the AI to draft evacuation plans, or type a message above and hit Send SMS.
+                    </p>
+                </div>
+            )}
+
+            {chatHistory.map((msg, idx) => (
+                <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'system' ? (
+                        <div className={`w-full text-center text-[10px] font-bold py-1 px-3 rounded-full my-1 mx-4 ${msg.isError ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                            {msg.content}
+                        </div>
+                    ) : (
+                        <div className={`flex items-end gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                            
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-[#3f7ce0] text-white' : 'bg-[#233a77] text-white'}`}>
+                                {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+                            </div>
+
+                            <div className={`p-3 text-xs leading-relaxed shadow-sm whitespace-pre-wrap ${
+                                msg.role === 'user' 
+                                ? 'bg-[#3f7ce0] text-white rounded-2xl rounded-br-sm' 
+                                : msg.isError 
+                                    ? 'bg-red-50 text-red-700 border border-red-200 rounded-2xl rounded-bl-sm'
+                                    : 'bg-white text-gray-700 border border-gray-100 rounded-2xl rounded-bl-sm'
+                            }`}>
+                                {msg.content}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ))}
+            
+            {isAiTyping && (
+                <div className="flex w-full justify-start">
+                    <div className="flex items-end gap-2">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-[#233a77] text-white">
+                            <Bot className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm p-3 shadow-sm flex items-center gap-1.5 h-[38px]">
+                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div ref={chatEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 shrink-0">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-1 pr-2 focus-within:border-[#3f7ce0] focus-within:bg-white transition-all shadow-inner">
+                <textarea 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Draft alert message or ask AI..."
+                    className="flex-1 bg-transparent border-none focus:outline-none text-xs text-gray-800 p-2 resize-none h-10 max-h-24 scrollbar-thin"
+                    onKeyDown={(e) => {
+                        if(e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend(e);
+                        }
+                    }}
+                />
+                <button 
+                    type="submit"
+                    disabled={!message.trim() || isAiTyping}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${!message.trim() || isAiTyping ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#233a77] text-white hover:bg-[#3f7ce0] shadow-md'}`}
+                >
+                    <Send className="w-3.5 h-3.5 ml-0.5" />
+                </button>
+            </div>
+        </form>
 
     </div>
   );

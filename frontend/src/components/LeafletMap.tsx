@@ -7,12 +7,11 @@ import parseGeoraster from 'georaster';
 import GeoRasterLayer from 'georaster-layer-for-leaflet';
 
 // Fix for default marker icons in Leaflet with Next.js/Webpack
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
 });
 
 const PrecipitationHeatmap = ({ rainfall }: { rainfall: number | null }) => {
@@ -124,11 +123,15 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
   const bhuragaonPosition: [number, number] = [26.3715, 92.267]; 
   
   const [roadsData, setRoadsData] = useState(null);
+  const [landuseData, setLanduseData] = useState(null);
+  const [buildingsData, setBuildingsData] = useState(null);
   const [sheltersData, setSheltersData] = useState(null);
 
   useEffect(() => {
     // Fetch Vector Data
     fetch('/data/roads.geojson').then(r => r.json()).then(setRoadsData).catch(e => console.error("Roads error", e));
+    fetch('/data/landuse.geojson').then(r => r.json()).then(setLanduseData).catch(e => console.error("Landuse error", e));
+    fetch('/data/buildings.geojson').then(r => r.json()).then(setBuildingsData).catch(e => console.error("Buildings error", e));
     fetch('/data/shelters.geojson').then(r => r.json()).then(setSheltersData).catch(e => console.error("Shelters error", e));
     // This forces a resize event when the map mounts to prevent the classic Leaflet "grey tile" rendering bug
     setTimeout(() => {
@@ -205,40 +208,51 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
 
         {/* Raster Layer: DEM */}
         {layers.dem && (
-          <RasterLayer url="/data/dem.tif" options={{ opacity: 0.5 }} />
+          <ImageOverlay url="/data/dem_color.png" bounds={[[26.2501389, 91.9968055], [26.5329166, 92.5465277]]} opacity={0.65} />
         )}
 
-        {/* Raster Layer: Land Use / Land Cover (ESA WorldCover) */}
-        {layers.lulc && (
-          <ImageOverlay 
-            url="/data/lulc_color.png" 
-            bounds={[[26.302083, 92.172], [26.441333, 92.362]]}
-            opacity={0.65}
-          />
-        )}
+
 
         {/* Raster Layer: Pre-Peak Flood Depth */}
         {layers.prePeakFlood && (
           <ImageOverlay 
             url={`/data/pre_peak_flood.png?t=${new Date().getTime()}`}
-            bounds={[[26.322, 92.192], [26.421, 92.342]]}
+            bounds={[[26.2501389, 91.9968055], [26.5329166, 92.5465277]]}
             opacity={0.7}
           />
         )}
 
         {/* Raster Layer: ANUGA Peak Flood Depth */}
-        {layers.peakFlood && (
+        {layers.floodDepth && (
           <ImageOverlay 
             url={`/data/flood_depth.png?t=${new Date().getTime()}`}
-            bounds={[[26.322, 92.192], [26.421, 92.342]]}
+            bounds={[[26.2501389, 91.9968055], [26.5329166, 92.5465277]]}
             opacity={0.7}
           />
         )}
 
 
         {/* Vector Layer: Roads */}
+
+        {layers.lulc && (
+          <ImageOverlay 
+            url="/data/lulc_color.png?v=3" 
+            bounds={[[26.2501389, 91.9968055], [26.5329166, 92.5465277]]}
+            opacity={0.65}
+          />
+        )}
+        
+        {layers.buildings && buildingsData && (
+          <GeoJSON 
+            key="buildings-layer"
+            data={buildingsData} 
+            style={{ color: '#4a4a4a', weight: 1, fillColor: '#d4d4d4', fillOpacity: 0.8 }} 
+          />
+        )}
+
         {layers.roads && roadsData && (
           <GeoJSON 
+            key="roads-layer"
             data={roadsData} 
             style={{ color: '#555', weight: 2, opacity: 0.8 }} 
           />
@@ -247,6 +261,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         {/* Vector Layer: Shelters */}
         {layers.shelters && sheltersData && (
           <GeoJSON 
+            key="shelters-layer"
             data={sheltersData} 
             style={{ color: '#f59e0b', weight: 1, fillOpacity: 0.1 }} 
           />

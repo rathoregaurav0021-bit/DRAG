@@ -33,7 +33,8 @@ def run_anuga_simulation(discharge_data_json):
         transform = src.transform
         
     dem_min = np.min(dem_data[dem_data > -9999])
-    dem_max = np.max(dem_data)
+    valid_data = dem_data[dem_data > -9999]
+    dem_max = np.percentile(valid_data, 95) # Aggressive clip to ignore mountain peaks for flat plains flooding
     
     # 1. Peak Flood PNG
     severity = min(1.0, peak_discharge / 150.0) 

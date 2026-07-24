@@ -1,153 +1,156 @@
 "use client";
 import React, { useState } from 'react';
-import { LayoutDashboard, History, Settings, LogOut, CloudRain, ChevronLeft, ChevronRight, Shield, Smartphone } from 'lucide-react';
+import { LayoutDashboard, CloudRain, Shield, Smartphone, Settings, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
 import MapOverview from '@/components/MapOverview';
 import SafeSpotDashboard from '@/components/SafeSpotDashboard';
 import SmsDashboard from '@/components/SmsDashboard';
 import RainfallDashboard from '@/components/RainfallDashboard';
 
-const CustomFloodIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    {/* House Body */}
-    <path d="M15 3l7 6v6H10V9l5-6z" fill="currentColor" />
-    {/* House Window */}
-    <rect x="14.5" y="9" width="3.5" height="3.5" rx="1" fill="white" />
-    {/* Circle Outline to cut out house */}
-    <circle cx="8.5" cy="9" r="6" fill="white" />
-    {/* Dark Circle */}
-    <circle cx="8.5" cy="9" r="5" fill="currentColor" />
-    {/* Arrow */}
-    <path d="M5.5 9h5m-2-2l2 2-2 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    {/* Waves */}
-    <path d="M2 17.5 q 1.66 -1.5, 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M2 21.5 q 1.66 -1.5, 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0 t 3.33 0" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+// Dynamically import LeafletMap for the global background
+const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { 
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[#e1f1ee]">
+        <p className="text-[#233a77] font-bold animate-pulse">Initializing Map Engine...</p>
+      </div>
+    )
+});
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // GLOBAL MAP STATE
+  const [layers, setLayers] = useState({
+    dem: false,
+    lulc: false,
+    buildings: false,
+    roads: true,
+    shelters: false,
+    floodDepth: false,
+    aiSafeSpots: true
+  });
+  
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [aiSafeSpots, setAiSafeSpots] = useState<any[]>([]);
+  const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
+  const [destinationName, setDestinationName] = useState<string | null>(null);
   const [smsContext, setSmsContext] = useState<any>(null);
+  
+  const [status, setStatus] = useState("Awaiting Simulation...");
+  const [recommendation, setRecommendation] = useState("");
 
   const handleNavigateToSms = (context: any) => {
     setSmsContext(context);
     setActiveTab('sms');
-  };
-  const [status, setStatus] = useState("Awaiting Simulation...");
-  const [recommendation, setRecommendation] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isTopMenuOpen, setIsTopMenuOpen] = useState(false);
-
-  const handleSimulate = async () => {
-    setStatus("Running Simulation...");
-    setRecommendation("");
-    
-    // Check backend health logic
-    try {
-        const res = await fetch('/api/health');
-        if (res.ok) console.log("Backend Connected");
-    } catch (e) {
-        console.error("Backend offline", e);
-    }
-
-    // Simulate API call delay
-    setTimeout(() => {
-      setStatus("Simulation Complete");
-      setRecommendation("Recommended Shelter: Govt High School (850m away). Evacuate via Market Road. Avoid River Embankment Road due to high flooding.");
-      // In the future, this will automatically toggle the 'floodDepth' layer in MapOverview
-    }, 2000);
+    setIsMenuOpen(false); // Auto close menu
   };
 
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'overview', label: 'Map Layers', icon: LayoutDashboard },
     { id: 'meteorology', label: 'Rainfall Setup', icon: CloudRain },
-    { id: 'safe-spot', label: 'Safe Spot', icon: Shield },
+    { id: 'safe-spot', label: 'AI Evacuation', icon: Shield },
     { id: 'sms', label: 'SMS Dispatch', icon: Smartphone },
-    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <main className="flex h-screen w-full bg-white overflow-hidden font-sans text-slate-800">
+    <main className="relative flex h-screen w-full bg-[#e1f1ee] overflow-hidden font-sans text-slate-800">
       
-      {/* Thin White Sidebar (Google Maps Style) */}
-      <aside className="w-[72px] bg-white border-r border-gray-200 flex flex-col items-center shrink-0 z-50 shadow-sm py-4 relative">
+      {/* GLOBAL BACKGROUND MAP */}
+      <div className="absolute inset-0 z-0">
+        <LeafletMap 
+            layers={layers} 
+            aiSafeSpots={activeTab === "safe-spot" ? aiSafeSpots : undefined} 
+            userLocation={userLocation}
+            setUserLocation={activeTab === "safe-spot" ? setUserLocation : undefined}
+            routeGeoJSON={activeTab === "safe-spot" ? routeGeoJSON : undefined}
+        />
+      </div>
 
-        {/* Navigation Links */}
-        <div className="flex flex-col items-center gap-5 flex-1 w-full">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <div key={item.id} className="relative group flex flex-col items-center">
-                <button
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-blue-50 text-blue-600 shadow-sm' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-900'}`} strokeWidth={isActive ? 2.5 : 2} />
-                </button>
-                
-                {/* Custom Tooltip */}
-                <div className="absolute left-full top-6 -translate-y-1/2 ml-3 px-2.5 py-1 bg-gray-800 text-white text-xs font-semibold rounded-md shadow-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-nowrap">
-                  {item.label}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      {/* COMPACT HAMBURGER MENU */}
+      <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="w-12 h-12 bg-white shadow-xl rounded-xl flex items-center justify-center text-[#233a77] hover:bg-[#e1f1ee] transition-colors border border-gray-100"
+        >
+          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
 
-        {/* Bottom Profile/Logout Removed */}
-      </aside>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -10 }}
+              className="flex flex-col gap-1 bg-white/95 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-[#92cce5]/30"
+            >
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setActiveTab(item.id); setIsMenuOpen(false); }}
+                    className={`relative flex items-center justify-start px-4 py-3 rounded-xl transition-all duration-200 w-48 group ${
+                      isActive 
+                        ? 'bg-[#233a77] text-white shadow-md' 
+                        : 'text-gray-600 hover:bg-[#e1f1ee] hover:text-[#233a77]'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#92cce5]' : 'text-gray-400 group-hover:text-[#3f7ce0]'}`} strokeWidth={2} />
+                    <span className="font-bold text-sm tracking-tight">{item.label}</span>
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-      {/* Main Content Area */}
-      <section className="flex-1 flex flex-col relative overflow-hidden bg-[#e5e3df]">
-        
-        {/* Floating Top Bar Removed */}
+      {/* FLOATING UI PANELS (Must be pointer-events-none so map is clickable) */}
+      <div className="absolute inset-0 z-[500] pointer-events-none overflow-hidden flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          
+          {activeTab === 'overview' && (
+            <motion.div key="overview" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
+              <MapOverview layers={layers} setLayers={setLayers} />
+            </motion.div>
+          )}
 
-        {/* Dynamic Content Views */}
-        <div className="flex-1 relative overflow-hidden bg-transparent">
-          <AnimatePresence mode="wait">
-            {activeTab === 'overview' && (
-              <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full absolute">
-                <MapOverview status={status} recommendation={recommendation} onSimulate={handleSimulate} />
-              </motion.div>
-            )}
+          {activeTab === 'meteorology' && (
+            <motion.div key="meteorology" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
+              <RainfallDashboard setLayers={setLayers} setAiSafeSpots={setAiSafeSpots} />
+            </motion.div>
+          )}
+          
+          {activeTab === 'safe-spot' && (
+            <motion.div key="safe-spot" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
+              <SafeSpotDashboard 
+                userLocation={userLocation}
+                setUserLocation={setUserLocation}
+                routeGeoJSON={routeGeoJSON}
+                setAiSafeSpots={setAiSafeSpots}
+                setRouteGeoJSON={setRouteGeoJSON}
+                destinationName={destinationName}
+                setDestinationName={setDestinationName}
+                onNavigateToSms={handleNavigateToSms} 
+              />
+            </motion.div>
+          )}
 
-            {activeTab === 'meteorology' && (
-              <motion.div key="meteorology" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full absolute">
-                <RainfallDashboard status={status} recommendation={recommendation} onSimulate={handleSimulate} />
-              </motion.div>
-            )}
-            
-            {activeTab === 'safe-spot' && (
-              <motion.div key="safe-spot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full absolute">
-                <SafeSpotDashboard onNavigateToSms={handleNavigateToSms} />
-              </motion.div>
-            )}
+          {activeTab === 'sms' && (
+            <motion.div key="sms" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.2 }} className="absolute bottom-6 right-6 pointer-events-auto">
+              <SmsDashboard context={smsContext} />
+            </motion.div>
+          )}
 
-            {activeTab === 'sms' && (
-              <motion.div key="sms" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="h-full w-full absolute">
-                <SmsDashboard context={smsContext} />
-              </motion.div>
-            )}
 
-            {activeTab === 'settings' && (
-              <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-8 flex items-center justify-center h-full w-full absolute">
-                 <div className="text-center text-gray-800 max-w-md bg-white p-12 rounded-[2rem] shadow-xl border border-gray-100">
-                     <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Settings className="w-10 h-10 text-slate-500" />
-                     </div>
-                     <h3 className="text-2xl font-bold text-gray-900 mb-3">Project Settings</h3>
-                     <p className="text-[15px] leading-relaxed text-gray-500">Configure API keys, simulation engine endpoints, and database connections.</p>
-                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
+
+        </AnimatePresence>
+      </div>
 
     </main>
   );

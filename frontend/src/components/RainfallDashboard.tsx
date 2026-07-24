@@ -1,40 +1,23 @@
 "use client";
-import React, { useState, useRef } from 'react';
-import { Layers, Map as MapIcon, Navigation, CloudRain, Upload, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import React, { useState, useRef, useMemo } from 'react';
+import { CloudRain, Upload, X } from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
 import Papa from 'papaparse';
-import dynamic from 'next/dynamic';
 
-const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { 
-    ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-gray-200 z-10 absolute inset-0">
-        <MapIcon className="w-10 h-10 text-blue-400 mb-3 animate-pulse" />
-        <p className="text-gray-500 font-medium">Initializing Map Engine...</p>
-      </div>
-    )
-});
-
-export default function RainfallDashboard({ status, recommendation, onSimulate }: any) {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  
-  // Mock layers for the GIS dashboard
-  const [layers, setLayers] = useState({
-    dem: true,
-    lulc: false,
-    roads: true,
-    floodDepth: false,
-    shelters: true,
-    aiSafeSpots: true
-  });
-  
-  // Rainfall Data State
+export default function RainfallDashboard({ setLayers, setAiSafeSpots }: any) {
   const [rainfallData, setRainfallData] = useState<any[] | null>(null);
-  const [hoveredRainfall, setHoveredRainfall] = useState<number | null>(null);
+  const [hoveredData, setHoveredData] = useState<any | null>(null);
   const [isSimulatingWflow, setIsSimulatingWflow] = useState(false);
   const [soilMoisture, setSoilMoisture] = useState("Normal");
-  const [aiSafeSpots, setAiSafeSpots] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const maxValues = useMemo(() => {
+      if (!rainfallData) return { precip: 0, runoff: 0 };
+      return {
+          precip: Math.max(...rainfallData.map(d => d.precipitation || 0)),
+          runoff: Math.max(...rainfallData.map(d => d.discharge || 0))
+      };
+  }, [rainfallData]);
 
   const handleWflowSimulate = async () => {
     if (!rainfallData) return;
@@ -50,24 +33,16 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
       
       const result = await response.json();
       if (result.status === 'success') {
-        // Replace existing rainfall data with enriched Wflow data
         setRainfallData(result.data);
-        // Save the AI safe spots returned from the backend
-        setAiSafeSpots(result.safe_spots || []);
-        // Success! Auto-toggle the Flood Depth layer so the user sees the physics instantly!
-        setLayers(prev => ({ ...prev, peakFlood: true }));
-        alert("Success! WFlow Engine generated the Surface Runoff data!");
+        if(setAiSafeSpots) setAiSafeSpots(result.safe_spots || []);
+        if(setLayers) setLayers((prev: any) => ({ ...prev, floodDepth: true }));
       } else {
-        console.error("Wflow error:", result.message);
         alert("WFlow API Error: " + result.message);
       }
     } catch (e: any) {
-      console.error(e);
-      alert("Network Error: Could not reach the FastAPI server. " + e.message);
+      alert("Network Error: Could not reach the FastAPI server.");
     } finally {
       setIsSimulatingWflow(false);
-      // Trigger parent onSimulate if needed for ANUGA later
-      if (onSimulate) onSimulate();
     }
   };
 
@@ -79,12 +54,12 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
         dynamicTyping: true,
         skipEmptyLines: true,
         complete: (results) => {
-          // Map dynamic CSV headers to standard 'time' and 'precipitation' keys for the chart
           const formatted = results.data.map((row: any, i) => {
              const keys = Object.keys(row);
              return {
                 time: row[keys[0]] ?? i,
-                precipitation: row[keys[1]] ?? 0
+                precipitation: row[keys[1]] ?? 0,
+                discharge: 0
              };
           });
           setRainfallData(formatted);
@@ -93,176 +68,152 @@ export default function RainfallDashboard({ status, recommendation, onSimulate }
     }
   };
 
-  const toggleLayer = (layer: keyof typeof layers) => {
-    setLayers(prev => {
-      const newState = { ...prev, [layer]: !prev[layer] };
-      // Make flood layers mutually exclusive for better visualization
-      if (layer === 'prePeakFlood' && newState.prePeakFlood) {
-        newState.peakFlood = false;
-      }
-      if (layer === 'peakFlood' && newState.peakFlood) {
-        newState.prePeakFlood = false;
-      }
-      return newState;
-    });
+  const clearData = () => {
+      setRainfallData(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    React.useEffect(() => {
-      if (active && payload && payload.length) {
-        setHoveredRainfall(payload[0].payload.precipitation);
-      } else if (!active) {
-        setHoveredRainfall(null);
+  const loadSampleData = async () => {
+      try {
+          const response = await fetch('/data/sample_rainfall.csv');
+          const csvData = await response.text();
+          Papa.parse(csvData, {
+              header: true,
+              dynamicTyping: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                  const formatted = results.data.map((row: any, i) => {
+                      const keys = Object.keys(row);
+                      return {
+                          time: row[keys[0]] ?? i,
+                          precipitation: row[keys[1]] ?? 0,
+                          discharge: 0
+                      };
+                  });
+                  setRainfallData(formatted);
+              }
+          });
+      } catch (e) {
+          alert("Could not load sample data.");
       }
-    }, [active, payload]);
-
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100 z-[1000]">
-          <p className="font-semibold text-gray-700">Hour {label}</p>
-          <p className="text-blue-600 font-bold">Rainfall: {payload[0].value} mm</p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
-    <div className="relative flex h-full w-full bg-transparent overflow-hidden">
-      {/* Interactive Leaflet Map (Base Layer) */}
-      <div className="absolute inset-0 z-0 bg-slate-950" style={{ '--panel-offset': isPanelOpen ? '340px' : '90px' } as React.CSSProperties}>
-        <LeafletMap layers={layers} hoveredRainfall={hoveredRainfall} aiSafeSpots={aiSafeSpots} />
-      </div>
-
-      {/* Rainfall Timeline Overlay */}
-      {rainfallData && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-11/12 max-w-3xl bg-white border border-gray-100 shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-2xl p-5 z-[400] transition-all animate-in slide-in-from-bottom-10 fade-in duration-500">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <CloudRain className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-gray-900 text-sm tracking-wide">Storm Hyetograph (Rainfall Intensity)</h3>
-            </div>
-            {hoveredRainfall !== null && (
-              <div className="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-1.5 rounded-md shadow-sm border border-blue-200">
-                 Target: {hoveredRainfall}mm
-              </div>
-            )}
-          </div>
-          <div className="h-36 w-full mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={rainfallData} onMouseLeave={() => setHoveredRainfall(null)}>
-                <defs>
-                  <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorRunoff" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#059669" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="time" 
-                  type="number"
-                  domain={[0, 24]}
-                  ticks={[0, 4, 8, 12, 16, 20, 24]}
-                  tick={{fontSize: 12, fill: '#64748b', fontWeight: 500}} 
-                  axisLine={false} 
-                  tickLine={false} 
-                />
-                <YAxis tick={{fontSize: 12, fill: '#64748b', fontWeight: 500}} axisLine={false} tickLine={false} width={30} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '3 3' }} />
-                <Area type="monotone" dataKey="precipitation" name="Rainfall (mm)" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRain)" />
-                <Area type="monotone" dataKey="discharge" name="Surface Runoff (mm)" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorRunoff)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Layer Toggles Toolbar (Bottom Left - Vertical) */}
-      <div className={`absolute left-6 bottom-10 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-3xl border border-gray-100 transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isPanelOpen ? 'w-48 py-2' : 'w-[52px] h-[52px]'}`}>
+    <div className="pointer-events-auto bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-[#92cce5]/30 max-w-[380px] w-full flex flex-col gap-4">
         
-        {/* Toggle Button */}
-        <button 
-          onClick={() => setIsPanelOpen(!isPanelOpen)}
-          className="flex-shrink-0 w-[52px] h-[52px] flex items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors rounded-full self-start"
-          title="Toggle Layers"
-        >
-          {isPanelOpen ? <ChevronRight className="w-5 h-5" /> : <Layers className="w-6 h-6" />}
-        </button>
-
-        {/* Toolbar Content */}
-        <div className={`flex flex-col gap-1 transition-opacity duration-300 px-2 pb-2 ${isPanelOpen ? 'opacity-100 delay-100' : 'opacity-0 pointer-events-none hidden'}`}>
-          <div className="h-px w-full bg-gray-200 my-1"></div>
-          
-          {/* Layer Toggles */}
-          {[
-            { id: 'dem', label: 'DEM' },
-            { id: 'lulc', label: 'World Cover' },
-            { id: 'roads', label: 'Roads' },
-            { id: 'shelters', label: 'Shelters' },
-            { id: 'prePeakFlood', label: 'Pre-Peak Flood' },
-            { id: 'peakFlood', label: 'Peak Flood' },
-            { id: 'aiSafeSpots', label: 'AI Safe Zones' }
-          ].map(item => (
-            <button 
-              key={item.id} 
-              onClick={() => toggleLayer(item.id as keyof typeof layers)}
-              className={`w-full px-3 py-2 rounded-xl text-[13px] font-semibold flex items-center gap-2 border transition-all ${layers[item.id as keyof typeof layers] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-200'}`}
-            >
-              <div className={`flex-shrink-0 w-2 h-2 rounded-full ${layers[item.id as keyof typeof layers] ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <span className="truncate">{item.label}</span>
-            </button>
-          ))}
+        {/* Header */}
+        <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#e1f1ee] rounded-xl text-[#233a77]">
+                <CloudRain className="w-5 h-5" />
+            </div>
+            <div>
+                <h2 className="text-sm font-bold text-[#233a77] tracking-tight leading-none">Meteorology</h2>
+                <p className="text-[10px] text-gray-500 font-medium mt-1">Configure precipitation data</p>
+            </div>
         </div>
-      </div>
 
-      {/* Actions Toolbar (Top Right) */}
-      <div className="absolute right-6 top-6 z-[500] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 px-3 py-2 flex items-center gap-3">
-          
-          {/* Soil Moisture Dropdown */}
-          <div className="flex items-center gap-2 border-r border-gray-200 pr-3">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Groundwater:</span>
-            <select 
-              value={soilMoisture}
-              onChange={(e) => setSoilMoisture(e.target.value)}
-              className="text-[13px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-3 py-1 outline-none hover:border-blue-300 focus:border-blue-500 transition-colors cursor-pointer"
-            >
-              <option value="Dry">Dry (AMC I)</option>
-              <option value="Normal">Normal (AMC II)</option>
-              <option value="Saturated">Saturated (AMC III)</option>
-            </select>
-          </div>
+        {!rainfallData ? (
+            <div className="flex flex-col gap-2 mt-1">
+                <input 
+                    type="file" 
+                    accept=".csv" 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                />
+                <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-2.5 bg-[#233a77] hover:bg-[#3f7ce0] text-white text-xs font-bold flex items-center justify-center gap-2 rounded-xl transition-all shadow-md"
+                >
+                    <Upload className="w-4 h-4" /> Upload CSV
+                </button>
+                <div className="text-[10px] text-center font-bold text-gray-300">OR</div>
+                <button 
+                    onClick={loadSampleData}
+                    className="w-full py-2 bg-[#e1f1ee] hover:bg-[#92cce5]/30 text-[#233a77] text-xs font-bold rounded-xl transition-all"
+                >
+                    Use Sample Data
+                </button>
+            </div>
+        ) : (
+            <div className="flex flex-col gap-3 mt-1">
+                <div className="bg-[#e1f1ee]/50 rounded-xl p-3 pb-2 border border-[#92cce5]/20 relative">
+                    <button onClick={clearData} className="absolute top-1 right-1 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                    
+                    <div className="flex w-full justify-between items-end mb-2 pr-6 gap-2">
+                        <div className="flex flex-col flex-1 items-start">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5 whitespace-nowrap">Duration</span>
+                            <span className="text-sm font-black text-[#233a77]">{rainfallData.length} <span className="text-[10px] font-bold text-gray-500">hrs</span></span>
+                        </div>
+                        <div className="flex flex-col flex-1 items-center">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5 whitespace-nowrap">Peak Rain</span>
+                            <span className="text-sm font-black text-[#3f7ce0]">
+                                {hoveredData !== null ? hoveredData.precipitation : maxValues.precip}
+                                <span className="text-[9px] text-gray-400 ml-0.5">mm</span>
+                            </span>
+                        </div>
+                        <div className="flex flex-col flex-1 items-end">
+                            <span className="text-[9px] font-bold text-[#eab308] uppercase tracking-wide mb-0.5 whitespace-nowrap">Peak Runoff</span>
+                            <span className="text-sm font-black text-[#eab308]">
+                                {hoveredData !== null ? hoveredData.discharge : maxValues.runoff}
+                                <span className="text-[9px] text-gray-400 ml-0.5">mm</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div className="h-28 w-full mt-3">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={rainfallData} onMouseMove={(e: any) => { if(e && e.activePayload) setHoveredData(e.activePayload[0].payload) }} onMouseLeave={() => setHoveredData(null)}>
+                                <defs>
+                                    <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3f7ce0" stopOpacity={0.6}/>
+                                        <stop offset="95%" stopColor="#3f7ce0" stopOpacity={0}/>
+                                    </linearGradient>
+                                    <linearGradient id="colorRunoff" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#eab308" stopOpacity={0.6}/>
+                                        <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#92cce5" strokeOpacity={0.3} />
+                                <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', padding: '4px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                                <Area type="monotone" dataKey="precipitation" stroke="#233a77" strokeWidth={1.5} fill="url(#colorRain)" />
+                                <Area type="monotone" dataKey="discharge" stroke="#eab308" strokeWidth={1.5} fill="url(#colorRunoff)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
 
-          {/* File Upload for Rainfall Dashboard */}
-          <input 
-             type="file" 
-             accept=".csv" 
-             className="hidden" 
-             ref={fileInputRef} 
-             onChange={handleFileUpload} 
-          />
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            className="px-4 py-2 rounded-full text-[13px] font-semibold flex items-center gap-2 border border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all"
-            title="Upload CSV Hyetograph"
-          >
-            <Upload className="w-4 h-4" /> Upload CSV
-          </button>
-          
-          {/* Simulate Button */}
-          <button 
-            onClick={handleWflowSimulate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full text-[13px] font-bold flex items-center gap-2 shadow-sm transform active:scale-95 transition-all"
-          >
-            {isSimulatingWflow || status === "Running Simulation..." ? (
-              <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-            ) : <Navigation className="w-4 h-4" />}
-            {isSimulatingWflow ? "Simulating..." : "Run AI Simulation"}
-          </button>
-      </div>
+                <div className="flex items-center gap-3 bg-[#e1f1ee]/50 p-2 rounded-lg border border-[#92cce5]/20">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase px-1 whitespace-nowrap">Soil</span>
+                    <select 
+                        value={soilMoisture}
+                        onChange={(e) => setSoilMoisture(e.target.value)}
+                        className="flex-1 bg-white border border-[#92cce5]/50 text-[#233a77] text-xs font-bold rounded-lg block w-full p-1.5 focus:outline-none"
+                    >
+                        <option value="Dry">Dry</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Wet">Wet</option>
+                    </select>
+                </div>
+
+                <button 
+                    onClick={handleWflowSimulate}
+                    disabled={isSimulatingWflow}
+                    className={`w-full py-2.5 rounded-xl font-bold text-white text-xs shadow-md transition-all flex items-center justify-center gap-2 ${isSimulatingWflow ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#233a77] hover:bg-[#3f7ce0]'}`}
+                >
+                    {isSimulatingWflow ? (
+                        <>
+                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            Calculating...
+                        </>
+                    ) : (
+                        "Generate Runoff"
+                    )}
+                </button>
+            </div>
+        )}
     </div>
   );
 }
