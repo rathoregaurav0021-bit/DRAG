@@ -129,6 +129,7 @@ export default function Home() {
           {activeTab === 'safe-spot' && (
             <motion.div key="safe-spot" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
               <SafeSpotDashboard 
+                setLayers={setLayers}
                 userLocation={userLocation}
                 setUserLocation={setUserLocation}
                 routeGeoJSON={routeGeoJSON}

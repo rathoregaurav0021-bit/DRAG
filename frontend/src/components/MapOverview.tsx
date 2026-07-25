@@ -16,7 +16,8 @@ export default function MapOverview({ layers, setLayers }: any) {
     { id: 'roads', label: 'Roads' },
     { id: 'buildings', label: 'Buildings' },
     { id: 'shelters', label: 'Shelters' },
-    { id: 'floodDepth', label: 'Flood Depth' }
+    { id: 'prePeakFlood', label: 'Pre-Peak Flood' },
+    { id: 'floodDepth', label: 'Peak Flood' }
   ];
 
   return (

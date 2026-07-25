@@ -45,9 +45,7 @@ def calculate_safe_route(discharge_data, user_lat, user_lng, safe_spots):
                     
         if len(G.nodes) == 0: return None
         
-        # Keep only largest connected component to guarantee paths exist
-        largest_cc = max(nx.connected_components(G), key=len)
-        G = G.subgraph(largest_cc).copy()
+        # Removed largest_cc filter so we can route across disconnected subgraphs if needed
         
         # Find nearest node to user
         def get_nearest_node(lon, lat):
@@ -94,7 +92,7 @@ def calculate_safe_route(discharge_data, user_lat, user_lng, safe_spots):
             "type": "Feature",
             "geometry": {
                 "type": "LineString",
-                "coordinates": best_route
+                "coordinates": [[user_lng, user_lat]] + best_route + [[best_spot['lng'], best_spot['lat']]]
             },
             "properties": {"type": "evacuation_route"}
         }

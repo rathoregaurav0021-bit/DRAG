@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Shield, Navigation, Smartphone, MapPin, XCircle } from 'lucide-react';
 
 export default function SafeSpotDashboard({ 
+    setLayers,
     userLocation, 
     setUserLocation,
     routeGeoJSON,
@@ -43,6 +44,7 @@ export default function SafeSpotDashboard({
         if (result.route_info) {
             if(setRouteGeoJSON) setRouteGeoJSON(result.route_info.route);
             if(setDestinationName) setDestinationName(result.route_info.safe_spot?.name || "Verified Safe Zone");
+            if(setLayers) setLayers((prev: any) => ({ ...prev, prePeakFlood: true, floodDepth: false }));
             
             // Extract destination coords from routeGeoJSON (last coordinate)
             if (result.route_info.route?.geometry?.coordinates) {

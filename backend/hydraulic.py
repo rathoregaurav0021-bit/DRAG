@@ -1,6 +1,8 @@
 import os
 import json
 import numpy as np
+import matplotlib
+matplotlib.use('Agg') # Fix Tkinter thread crash in FastAPI
 import matplotlib.pyplot as plt
 import rasterio
 from scipy import ndimage
@@ -80,7 +82,7 @@ def run_anuga_simulation(discharge_data_json):
             center_x = int(np.mean(x_coords))
             
             lon, lat = transform * (center_x, center_y)
-            safe_spots.append({"lat": lat, "lng": lon, "id": i})
+            safe_spots.append({"lat": lat, "lng": lon, "id": i, "area": int(np.sum(blob_mask))})
             
     print(f"ANUGA Simulation Complete. Found {len(safe_spots)} Safe Zones.")
     return safe_spots
