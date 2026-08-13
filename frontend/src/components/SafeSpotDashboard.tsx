@@ -56,6 +56,33 @@ export default function SafeSpotDashboard({
             } else if (result.route_info.safe_spot) {
                 setDestinationCoords([result.route_info.safe_spot.lat, result.route_info.safe_spot.lng]);
             }
+            
+            // Register this safe spot location as awaiting evac!
+            try {
+                let destLat = userLocation[0];
+                let destLng = userLocation[1];
+                if (result.route_info.route?.geometry?.coordinates?.length > 0) {
+                    const lastCoord = result.route_info.route.geometry.coordinates[result.route_info.route.geometry.coordinates.length - 1];
+                    destLat = lastCoord[1];
+                    destLng = lastCoord[0];
+                } else if (result.route_info.safe_spot) {
+                    destLat = result.route_info.safe_spot.lat;
+                    destLng = result.route_info.safe_spot.lng;
+                }
+
+                await fetch('/api/rescue/stranded', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lat: destLat,
+                        lng: destLng,
+                        population: 1, // Hidden in UI
+                        elevation: Math.floor(Math.random() * 20) + 2    // Random elevation 2-22m
+                    })
+                });
+            } catch(e) {
+                console.error("Failed to register rescue group", e);
+            }
 
         } else {
             alert("No safe route could be found from this location during the Pre-Peak flood!");
@@ -83,7 +110,9 @@ export default function SafeSpotDashboard({
       if(onNavigateToSms) {
           onNavigateToSms({
               phone_number: "",
-              message: `EVACUATION ALERT: Proceed immediately to ${destinationName}. Safe route coordinates attached: ${destinationCoords ? destinationCoords[0].toFixed(4) + ',' + destinationCoords[1].toFixed(4) : ''}`
+              destinationName: destinationName,
+              destinationCoords: destinationCoords,
+              routeGeoJSON: routeGeoJSON
           });
       }
   };

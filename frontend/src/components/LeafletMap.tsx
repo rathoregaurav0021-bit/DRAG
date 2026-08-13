@@ -118,7 +118,7 @@ const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
   );
 };
 
-export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userLocation, setUserLocation, routeGeoJSON }: { layers: any, hoveredRainfall?: number | null, aiSafeSpots?: any[], userLocation?: [number, number] | null, setUserLocation?: (loc: [number, number]) => void, routeGeoJSON?: any }) {
+export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userLocation, setUserLocation, routeGeoJSON, strandedGroups, activeRescueGroup, showRescueLayer }: { layers: any, hoveredRainfall?: number | null, aiSafeSpots?: any[], userLocation?: [number, number] | null, setUserLocation?: (loc: [number, number]) => void, routeGeoJSON?: any, strandedGroups?: any[], activeRescueGroup?: any, showRescueLayer?: boolean }) {
   // Exact center of Bhuragaon, Assam based on GeoJSON limits
   const bhuragaonPosition: [number, number] = [26.3715, 92.267]; 
   
@@ -138,6 +138,15 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         window.dispatchEvent(new Event('resize'));
     }, 100);
   }, []);
+
+  const mapRef = React.useRef<any>(null);
+
+  // Fly to active rescue group
+  useEffect(() => {
+      if (activeRescueGroup && mapRef.current) {
+          mapRef.current.flyTo([activeRescueGroup.lat, activeRescueGroup.lng], 16, { duration: 1.5 });
+      }
+  }, [activeRescueGroup]);
 
   return (
     <div className="h-full w-full relative z-0">
@@ -195,6 +204,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         className="h-full w-full"
         zoomControl={false}
         attributionControl={false}
+        ref={mapRef}
       >
         <MapClickHandler setUserLocation={setUserLocation} />
         <ZoomControl position="bottomright" />
@@ -278,9 +288,57 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         {routeGeoJSON && (
           <GeoJSON 
             data={routeGeoJSON} 
-            style={{ color: '#10b981', weight: 4, dashArray: '5, 10', opacity: 0.9 }} 
+            style={{ color: '#10b981', weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }} 
           />
         )}
+
+        {/* Stranded Groups / Rescue Layer */}
+        {showRescueLayer && strandedGroups && (
+          <LayerGroup>
+            {strandedGroups.map((group) => {
+              const isActive = activeRescueGroup?.id === group.id;
+              
+              // Create a custom pulsing div icon for critical targets
+              const customIcon = L.divIcon({
+                className: 'custom-rescue-icon',
+                html: `
+                  <div style="
+                    width: ${isActive ? '24px' : '16px'}; 
+                    height: ${isActive ? '24px' : '16px'}; 
+                    background-color: ${group.tier === 'CRITICAL' ? '#ef4444' : group.tier === 'HIGH' ? '#f97316' : '#eab308'}; 
+                    border-radius: 50%; 
+                    border: 2px solid white; 
+                    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                    ${group.tier === 'CRITICAL' ? 'animation: pulse 1.5s infinite;' : ''}
+                    transition: all 0.3s ease;
+                  "></div>
+                `,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+              });
+
+              return (
+                <Marker 
+                  key={group.id} 
+                  position={[group.lat, group.lng]}
+                  icon={customIcon}
+                  zIndexOffset={isActive ? 1000 : 0}
+                >
+                  <Popup>
+                    <div className="font-sans text-sm p-1">
+                      <div className="font-bold text-gray-800 border-b pb-1 mb-1">{group.id} (Safe Spot)</div>
+                      <div className="text-gray-600">Elevation: <span className="font-bold text-orange-600">{group.elevation}m</span></div>
+                      <div className={`mt-2 text-xs font-bold text-white px-2 py-1 rounded text-center ${group.tier === 'CRITICAL' ? 'bg-red-500' : group.tier === 'HIGH' ? 'bg-orange-500' : 'bg-yellow-500'}`}>
+                        {group.tier} PRIORITY
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </LayerGroup>
+        )}
+
         {/* AI-Generated Safe Spots */}
         {layers.aiSafeSpots && aiSafeSpots && aiSafeSpots.length > 0 && (
           <LayerGroup>

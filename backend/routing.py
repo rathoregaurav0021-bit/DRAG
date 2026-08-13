@@ -45,7 +45,9 @@ def calculate_safe_route(discharge_data, user_lat, user_lng, safe_spots):
                     
         if len(G.nodes) == 0: return None
         
-        # Removed largest_cc filter so we can route across disconnected subgraphs if needed
+        # We must use the largest connected component. NetworkX cannot route across disconnected subgraphs because there are no edges connecting them.
+        largest_cc = max(nx.connected_components(G), key=len)
+        G = G.subgraph(largest_cc).copy()
         
         # Find nearest node to user
         def get_nearest_node(lon, lat):
@@ -73,16 +75,19 @@ def calculate_safe_route(discharge_data, user_lat, user_lng, safe_spots):
                 
         if not best_route: return None
         
-        # Reverse geocode safe spot name
-        spot_name = "Unknown Safe Area"
+        # Reverse geocode safe spot name using Nominatim API
+        spot_name = "Elevated Safe Zone"
         try:
-            spot_pt = Point(best_spot['lng'], best_spot['lat'])
-            with open(shelters_path, 'r') as f:
-                shelters = json.load(f)
-            for feat in shelters['features']:
-                if shape(feat['geometry']).contains(spot_pt):
-                    spot_name = feat['properties'].get('name', 'Safe Shelter')
-                    break
+            import requests
+            url = f"https://nominatim.openstreetmap.org/reverse?lat={best_spot['lat']}&lon={best_spot['lng']}&format=json"
+            headers = {"User-Agent": "FloodShield-Demo-App/1.0"}
+            r = requests.get(url, headers=headers, timeout=3)
+            if r.status_code == 200:
+                data = r.json()
+                if 'display_name' in data:
+                    # Keep it short, just the first 2 parts (e.g. Village, District)
+                    parts = data['display_name'].split(',')
+                    spot_name = ', '.join(parts[:2]).strip()
         except Exception:
             pass
             

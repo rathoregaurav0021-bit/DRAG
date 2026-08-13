@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { LayoutDashboard, CloudRain, Shield, Smartphone, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, CloudRain, Shield, Smartphone, Menu, X, Users, LifeBuoy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
@@ -8,6 +8,8 @@ import MapOverview from '@/components/MapOverview';
 import SafeSpotDashboard from '@/components/SafeSpotDashboard';
 import SmsDashboard from '@/components/SmsDashboard';
 import RainfallDashboard from '@/components/RainfallDashboard';
+import RecipientsDashboard from '@/components/RecipientsDashboard';
+import RescueDashboard from '@/components/RescueDashboard';
 
 // Dynamically import LeafletMap for the global background
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { 
@@ -39,6 +41,8 @@ export default function Home() {
   const [routeGeoJSON, setRouteGeoJSON] = useState<any>(null);
   const [destinationName, setDestinationName] = useState<string | null>(null);
   const [smsContext, setSmsContext] = useState<any>(null);
+  const [activeRescueGroup, setActiveRescueGroup] = useState<any>(null);
+  const [strandedGroups, setStrandedGroups] = useState<any[]>([]);
   
   const [status, setStatus] = useState("Awaiting Simulation...");
   const [recommendation, setRecommendation] = useState("");
@@ -53,20 +57,25 @@ export default function Home() {
     { id: 'overview', label: 'Map Layers', icon: LayoutDashboard },
     { id: 'meteorology', label: 'Rainfall Setup', icon: CloudRain },
     { id: 'safe-spot', label: 'AI Evacuation', icon: Shield },
+    { id: 'rescue', label: 'Rescue Dispatch', icon: LifeBuoy },
     { id: 'sms', label: 'SMS Dispatch', icon: Smartphone },
+    { id: 'recipients', label: 'Recipients Log', icon: Users },
   ];
 
   return (
     <main className="relative flex h-screen w-full bg-[#e1f1ee] overflow-hidden font-sans text-slate-800">
       
-      {/* GLOBAL BACKGROUND MAP */}
-      <div className="absolute inset-0 z-0">
+      {/* GLOBAL BACKGROUND MAP (Hidden when in full-screen tabs) */}
+      <div className={`absolute inset-0 z-0 ${activeTab === 'recipients' ? 'hidden' : ''}`}>
         <LeafletMap 
             layers={layers} 
             aiSafeSpots={activeTab === "safe-spot" ? aiSafeSpots : undefined} 
             userLocation={userLocation}
             setUserLocation={activeTab === "safe-spot" ? setUserLocation : undefined}
             routeGeoJSON={activeTab === "safe-spot" ? routeGeoJSON : undefined}
+            strandedGroups={activeTab === "rescue" ? strandedGroups : undefined}
+            activeRescueGroup={activeTab === "rescue" ? activeRescueGroup : undefined}
+            showRescueLayer={activeTab === "rescue"}
         />
       </div>
 
@@ -142,9 +151,24 @@ export default function Home() {
             </motion.div>
           )}
 
+          {activeTab === 'rescue' && (
+            <motion.div key="rescue" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
+              <RescueDashboard 
+                onSelectGroup={(group) => setActiveRescueGroup(group)} 
+                onStrandedLoaded={(groups) => setStrandedGroups(groups)}
+              />
+            </motion.div>
+          )}
+
           {activeTab === 'sms' && (
             <motion.div key="sms" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.2 }} className="absolute bottom-6 right-6 pointer-events-auto">
               <SmsDashboard context={smsContext} />
+            </motion.div>
+          )}
+
+          {activeTab === 'recipients' && (
+            <motion.div key="recipients" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute inset-0 z-[100] bg-[#e1f1ee] pointer-events-auto p-12 overflow-y-auto pl-24">
+              <RecipientsDashboard />
             </motion.div>
           )}
 

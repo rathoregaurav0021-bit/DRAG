@@ -21,6 +21,39 @@ export default function SmsDashboard({ context }: { context?: any }) {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isAiTyping]);
 
+  useEffect(() => {
+      if (context && chatHistory.length === 0 && !isAiTyping) {
+          triggerAutoDraft();
+      }
+  }, [context]);
+
+  const triggerAutoDraft = async () => {
+      setIsAiTyping(true);
+      try {
+          const response = await fetch('/api/llm/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  prompt: "", 
+                  history: [], 
+                  context: context, 
+                  is_initial: true 
+              })
+          });
+          const data = await response.json();
+          setIsAiTyping(false);
+          if (data.status === 'success') {
+              setChatHistory([{ role: 'assistant', content: data.message }]);
+              setMessage(data.message); // Auto-fill the message box
+          } else {
+              setChatHistory([{ role: 'assistant', content: "Error: " + data.message, isError: true }]);
+          }
+      } catch (error) {
+          setIsAiTyping(false);
+          setChatHistory([{ role: 'assistant', content: "Failed to reach AI Engine.", isError: true }]);
+      }
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -34,14 +67,20 @@ export default function SmsDashboard({ context }: { context?: any }) {
         const response = await fetch('/api/llm/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: userMsg })
+            body: JSON.stringify({ 
+                prompt: userMsg,
+                history: chatHistory,
+                context: context,
+                is_initial: false
+            })
         });
         
         const data = await response.json();
         setIsAiTyping(false);
 
         if (data.status === 'success') {
-            setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+            setChatHistory(prev => [...prev, { role: 'assistant', content: data.message }]);
+            setMessage(data.message); // Auto-fill the message box
         } else {
             setChatHistory(prev => [...prev, { role: 'assistant', content: "Error: " + data.message, isError: true }]);
         }
@@ -55,10 +94,18 @@ export default function SmsDashboard({ context }: { context?: any }) {
     if (!phoneNumber.trim() || !message.trim()) return;
     setIsSending(true);
     try {
+        const destName = context?.destinationName || "Unknown Safe Area";
+        const destCoords = context?.destinationCoords ? `${context.destinationCoords[0].toFixed(4)}, ${context.destinationCoords[1].toFixed(4)}` : "";
         const res = await fetch('/api/sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone_number: phoneNumber, message: message })
+            body: JSON.stringify({ 
+                phone_number: phoneNumber, 
+                message: message, 
+                destination_name: destName, 
+                destination_coords: destCoords,
+                route_geojson: context?.routeGeoJSON || null
+            })
         });
         const data = await res.json();
         

@@ -50,17 +50,90 @@ def run_wflow_simulation(req: SimulationRequest):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+dispatched_messages = []
+
 class SmsRequest(BaseModel):
     phone_number: str
     message: str
+    destination_name: str = "Unknown Safe Area"
+    destination_coords: str = ""
+    route_geojson: dict = None
+    timestamp: str = ""
+
+import datetime
 
 @app.post("/api/sms")
 def send_sms(req: SmsRequest):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Store the record
+    dispatched_messages.append({
+        "phone_number": req.phone_number,
+        "message": req.message,
+        "destination_name": req.destination_name,
+        "destination_coords": req.destination_coords,
+        "route_geojson": req.route_geojson,
+        "timestamp": timestamp
+    })
+    
     print(f"""--- SMS DISPATCHED ---
 To: {req.phone_number}
+Destination: {req.destination_name}
 Message: {req.message}
 ----------------------""")
     return {"status": "success", "message": "SMS dispatched to carrier network."}
+
+@app.get("/api/sms/recipients")
+def get_recipients():
+    return {"status": "success", "data": dispatched_messages}
+
+real_stranded_cache = []
+stranded_id_counter = 1000
+
+class StrandedRequest(BaseModel):
+    lat: float
+    lng: float
+    population: int = 1
+    elevation: float = 10.0
+
+@app.post("/api/rescue/stranded")
+def add_stranded_group(req: StrandedRequest):
+    global stranded_id_counter
+    stranded_id_counter += 1
+    
+    # Priority Score Algorithm: Only based on elevation (lower = higher priority)
+    base_score = max(0, 100 - (req.elevation * 4))
+    
+    # Define Tiers
+    if base_score > 60:
+        tier = "CRITICAL"
+    elif base_score > 30:
+        tier = "HIGH"
+    else:
+        tier = "MODERATE"
+        
+    new_group = {
+        "id": f"SOS-{stranded_id_counter}",
+        "lat": req.lat,
+        "lng": req.lng,
+        "population": req.population,
+        "elevation": req.elevation,
+        "priority_score": round(base_score, 1),
+        "tier": tier
+    }
+    
+    # Check if already exists nearby to avoid spam
+    for g in real_stranded_cache:
+        if abs(g["lat"] - req.lat) < 0.001 and abs(g["lng"] - req.lng) < 0.001:
+            return {"status": "success", "message": "Already tracked", "data": g}
+            
+    real_stranded_cache.append(new_group)
+    real_stranded_cache.sort(key=lambda x: x["priority_score"], reverse=True)
+    return {"status": "success", "data": new_group}
+
+@app.get("/api/rescue/stranded")
+def get_stranded_groups():
+    return {"status": "success", "data": real_stranded_cache}
 
 import urllib.request
 import json
@@ -77,7 +150,7 @@ class LLMRequest(BaseModel):
 @app.post("/api/llm/chat")
 async def llm_chat(req: LLMRequest):
     ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434") + "/api/chat"
-    model = os.environ.get("OLLAMA_MODEL", "qwen2.5:0.5b")
+    model = os.environ.get("OLLAMA_MODEL", "qwen2.5:latest")
     
     messages = []
     
@@ -87,7 +160,9 @@ async def llm_chat(req: LLMRequest):
     
     if req.is_initial:
         dest_name = req.context.get("destinationName", "Safe Zone") if req.context else "Safe Zone"
-        first_prompt = f"Draft an urgent SMS alerting the user to evacuate immediately to {dest_name} due to rising flood waters. Keep it under 160 characters. Do not include hashtags or pleasantries."
+        dest_coords = req.context.get("destinationCoords") if req.context else None
+        coord_str = f"{dest_coords[0]:.4f},{dest_coords[1]:.4f}" if dest_coords and len(dest_coords) == 2 else ""
+        first_prompt = f"Draft an urgent SMS alerting the user to evacuate immediately to {dest_name}. End the message exactly with: '[Map Screenshot Attached: route.png]'. Keep it under 140 characters. No hashtags."
         messages.append({"role": "user", "content": first_prompt})
     else:
         # Pass history
