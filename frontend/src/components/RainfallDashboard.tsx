@@ -99,121 +99,121 @@ export default function RainfallDashboard({ setLayers, setAiSafeSpots }: any) {
   };
 
   return (
-    <div className="pointer-events-auto bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-[#92cce5]/30 max-w-[380px] w-full flex flex-col gap-4">
+    <div className="bg-white border border-gray-300 shadow-sm w-full flex flex-col pointer-events-auto">
         
         {/* Header */}
-        <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#e1f1ee] rounded-xl text-[#233a77]">
-                <CloudRain className="w-5 h-5" />
-            </div>
+        <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-slate-900 text-white">
+            <CloudRain className="w-5 h-5 text-slate-300" />
             <div>
-                <h2 className="text-sm font-bold text-[#233a77] tracking-tight leading-none">Meteorology</h2>
-                <p className="text-[10px] text-gray-500 font-medium mt-1">Configure precipitation data</p>
+                <h2 className="text-sm font-bold tracking-tight leading-none uppercase">Meteorology Setup</h2>
+                <p className="text-xs text-slate-400 font-mono mt-1">Configure precipitation data</p>
             </div>
         </div>
 
-        {!rainfallData ? (
-            <div className="flex flex-col gap-2 mt-1">
-                <input 
-                    type="file" 
-                    accept=".csv" 
-                    onChange={handleFileUpload} 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                />
-                <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2.5 bg-[#233a77] hover:bg-[#3f7ce0] text-white text-xs font-bold flex items-center justify-center gap-2 rounded-xl transition-all shadow-md"
-                >
-                    <Upload className="w-4 h-4" /> Upload CSV
-                </button>
-                <div className="text-[10px] text-center font-bold text-gray-300">OR</div>
-                <button 
-                    onClick={loadSampleData}
-                    className="w-full py-2 bg-[#e1f1ee] hover:bg-[#92cce5]/30 text-[#233a77] text-xs font-bold rounded-xl transition-all"
-                >
-                    Use Sample Data
-                </button>
-            </div>
-        ) : (
-            <div className="flex flex-col gap-3 mt-1">
-                <div className="bg-[#e1f1ee]/50 rounded-xl p-3 pb-2 border border-[#92cce5]/20 relative">
-                    <button onClick={clearData} className="absolute top-1 right-1 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                    
-                    <div className="flex w-full justify-between items-end mb-2 pr-6 gap-2">
-                        <div className="flex flex-col flex-1 items-start">
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5 whitespace-nowrap">Duration</span>
-                            <span className="text-sm font-black text-[#233a77]">{rainfallData.length} <span className="text-[10px] font-bold text-gray-500">hrs</span></span>
-                        </div>
-                        <div className="flex flex-col flex-1 items-center">
-                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-0.5 whitespace-nowrap">Peak Rain</span>
-                            <span className="text-sm font-black text-[#3f7ce0]">
-                                {hoveredData !== null ? hoveredData.precipitation : maxValues.precip}
-                                <span className="text-[9px] text-gray-400 ml-0.5">mm</span>
-                            </span>
-                        </div>
-                        <div className="flex flex-col flex-1 items-end">
-                            <span className="text-[9px] font-bold text-[#eab308] uppercase tracking-wide mb-0.5 whitespace-nowrap">Peak Runoff</span>
-                            <span className="text-sm font-black text-[#eab308]">
-                                {hoveredData !== null ? hoveredData.discharge : maxValues.runoff}
-                                <span className="text-[9px] text-gray-400 ml-0.5">mm</span>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div className="h-28 w-full mt-3">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={rainfallData} onMouseMove={(e: any) => { if(e && e.activePayload) setHoveredData(e.activePayload[0].payload) }} onMouseLeave={() => setHoveredData(null)}>
-                                <defs>
-                                    <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3f7ce0" stopOpacity={0.6}/>
-                                        <stop offset="95%" stopColor="#3f7ce0" stopOpacity={0}/>
-                                    </linearGradient>
-                                    <linearGradient id="colorRunoff" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#eab308" stopOpacity={0.6}/>
-                                        <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#92cce5" strokeOpacity={0.3} />
-                                <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px', padding: '4px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                <Area type="monotone" dataKey="precipitation" stroke="#233a77" strokeWidth={1.5} fill="url(#colorRain)" />
-                                <Area type="monotone" dataKey="discharge" stroke="#eab308" strokeWidth={1.5} fill="url(#colorRunoff)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3 bg-[#e1f1ee]/50 p-2 rounded-lg border border-[#92cce5]/20">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase px-1 whitespace-nowrap">Soil</span>
-                    <select 
-                        value={soilMoisture}
-                        onChange={(e) => setSoilMoisture(e.target.value)}
-                        className="flex-1 bg-white border border-[#92cce5]/50 text-[#233a77] text-xs font-bold rounded-lg block w-full p-1.5 focus:outline-none"
+        <div className="p-4">
+            {!rainfallData ? (
+                <div className="flex flex-col gap-3">
+                    <input 
+                        type="file" 
+                        accept=".csv" 
+                        onChange={handleFileUpload} 
+                        className="hidden" 
+                        ref={fileInputRef} 
+                    />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-center gap-2 border border-slate-900 transition-colors"
                     >
-                        <option value="Dry">Dry</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Wet">Wet</option>
-                    </select>
+                        <Upload className="w-4 h-4" /> Upload CSV
+                    </button>
+                    <div className="text-xs text-center font-bold text-gray-400 uppercase">OR</div>
+                    <button 
+                        onClick={loadSampleData}
+                        className="w-full py-2 bg-white hover:bg-gray-50 text-slate-800 text-xs font-bold border border-gray-300 transition-colors"
+                    >
+                        Use Sample Data
+                    </button>
                 </div>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    <div className="bg-gray-50 p-3 border border-gray-200 relative">
+                        <button onClick={clearData} className="absolute top-2 right-2 text-gray-400 hover:text-red-600 transition-colors">
+                            <X className="w-4 h-4" />
+                        </button>
+                        
+                        <div className="flex w-full justify-between items-end mb-4 pr-6 gap-2">
+                            <div className="flex flex-col flex-1 items-start">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Duration</span>
+                                <span className="text-sm font-black text-slate-800">{rainfallData.length} <span className="text-[10px] text-gray-500">hrs</span></span>
+                            </div>
+                            <div className="flex flex-col flex-1 items-center">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Peak Rain</span>
+                                <span className="text-sm font-black text-blue-600">
+                                    {hoveredData !== null ? hoveredData.precipitation : maxValues.precip}
+                                    <span className="text-[10px] text-gray-500 ml-0.5">mm</span>
+                                </span>
+                            </div>
+                            <div className="flex flex-col flex-1 items-end">
+                                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mb-1">Peak Runoff</span>
+                                <span className="text-sm font-black text-amber-600">
+                                    {hoveredData !== null ? hoveredData.discharge : maxValues.runoff}
+                                    <span className="text-[10px] text-amber-600 ml-0.5">mm</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="h-32 w-full border border-gray-200 bg-white">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={rainfallData} onMouseMove={(e: any) => { if(e && e.activePayload) setHoveredData(e.activePayload[0].payload) }} onMouseLeave={() => setHoveredData(null)}>
+                                    <defs>
+                                        <linearGradient id="colorRain" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                                        </linearGradient>
+                                        <linearGradient id="colorRunoff" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#d97706" stopOpacity={0.8}/>
+                                            <stop offset="95%" stopColor="#d97706" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="2 2" vertical={false} stroke="#e5e7eb" />
+                                    <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '0', padding: '6px', border: '1px solid #d1d5db', boxShadow: 'none' }} />
+                                    <Area type="step" dataKey="precipitation" stroke="#1e40af" strokeWidth={1} fill="url(#colorRain)" />
+                                    <Area type="monotone" dataKey="discharge" stroke="#b45309" strokeWidth={1} fill="url(#colorRunoff)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
 
-                <button 
-                    onClick={handleWflowSimulate}
-                    disabled={isSimulatingWflow}
-                    className={`w-full py-2.5 rounded-xl font-bold text-white text-xs shadow-md transition-all flex items-center justify-center gap-2 ${isSimulatingWflow ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#233a77] hover:bg-[#3f7ce0]'}`}
-                >
-                    {isSimulatingWflow ? (
-                        <>
-                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            Calculating...
-                        </>
-                    ) : (
-                        "Generate Runoff"
-                    )}
-                </button>
-            </div>
-        )}
+                    <div className="flex items-center gap-3 bg-gray-50 p-2 border border-gray-200">
+                        <span className="text-[10px] font-bold text-gray-600 uppercase px-1">Soil</span>
+                        <select 
+                            value={soilMoisture}
+                            onChange={(e) => setSoilMoisture(e.target.value)}
+                            className="flex-1 bg-white border border-gray-300 text-slate-800 text-xs font-bold block w-full p-1.5 focus:outline-none focus:border-slate-800"
+                        >
+                            <option value="Dry">Dry</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Wet">Wet</option>
+                        </select>
+                    </div>
+
+                    <button 
+                        onClick={handleWflowSimulate}
+                        disabled={isSimulatingWflow}
+                        className={`w-full py-2.5 font-bold text-white text-xs border transition-colors flex items-center justify-center gap-2 ${isSimulatingWflow ? 'bg-gray-400 border-gray-500 cursor-not-allowed' : 'bg-slate-900 border-slate-900 hover:bg-slate-800'}`}
+                    >
+                        {isSimulatingWflow ? (
+                            <>
+                                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Calculating...
+                            </>
+                        ) : (
+                            "Generate Runoff"
+                        )}
+                    </button>
+                </div>
+            )}
+        </div>
     </div>
   );
 }

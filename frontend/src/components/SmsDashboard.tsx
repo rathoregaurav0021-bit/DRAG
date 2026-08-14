@@ -123,38 +123,36 @@ export default function SmsDashboard({ context }: { context?: any }) {
   };
 
   return (
-    <div className="w-[340px] h-[520px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden">
+    <div className="w-full h-full min-h-[500px] bg-white border border-gray-300 shadow-sm flex flex-col pointer-events-auto">
         
         {/* Header */}
-        <div className="bg-[#233a77] p-4 flex items-center justify-between shrink-0 shadow-md z-10">
+        <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0 border-b border-gray-300 z-10">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-full">
-                    <Smartphone className="w-5 h-5 text-white" />
-                </div>
+                <Smartphone className="w-5 h-5 text-blue-400" />
                 <div>
-                    <h2 className="text-white font-bold text-sm tracking-wide">Emergency Dispatch</h2>
-                    <p className="text-[#92cce5] text-[10px] font-medium flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Qwen 2.5 Local Agent
+                    <h2 className="text-white font-bold text-sm tracking-wide uppercase">Emergency Dispatch</h2>
+                    <p className="text-slate-400 text-[10px] font-mono flex items-center gap-1 mt-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Qwen 2.5 Local Agent
                     </p>
                 </div>
             </div>
         </div>
 
         {/* Action Bar (Direct SMS) */}
-        <div className="bg-[#e1f1ee]/50 p-3 border-b border-[#92cce5]/20 flex flex-col gap-2 shrink-0">
-            <div className="text-[10px] font-bold text-gray-400 uppercase">Direct SMS</div>
+        <div className="bg-gray-50 p-3 border-b border-gray-200 flex flex-col gap-2 shrink-0">
+            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Direct SMS</div>
             <div className="flex gap-2">
                 <input 
                     type="text" 
                     placeholder="Recipient Number" 
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="flex-1 px-3 py-1.5 text-xs border border-[#92cce5]/50 rounded-lg focus:outline-none focus:border-[#3f7ce0] bg-white text-[#233a77] font-semibold"
+                    className="flex-1 px-3 py-1.5 text-xs border border-gray-300 rounded-none focus:outline-none focus:border-blue-600 bg-white text-slate-800 font-mono font-semibold"
                 />
                 <button 
                     onClick={handleDirectSms}
                     disabled={isSending || !phoneNumber || !message}
-                    className={`px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all flex items-center gap-1 ${isSending || !phoneNumber || !message ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3f7ce0] hover:bg-[#233a77]'}`}
+                    className={`px-3 py-1.5 text-xs font-bold text-white transition-colors flex items-center gap-1 border ${isSending || !phoneNumber || !message ? 'bg-gray-300 border-gray-400 cursor-not-allowed' : 'bg-blue-600 border-blue-700 hover:bg-blue-700'}`}
                 >
                     {isSending ? "Sending..." : "Send SMS"}
                 </button>
@@ -162,14 +160,14 @@ export default function SmsDashboard({ context }: { context?: any }) {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3">
+        <div className="flex-1 p-4 overflow-y-auto bg-white flex flex-col gap-4 border-b border-gray-200">
             
             {/* Greeting */}
             {chatHistory.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center px-4 opacity-60">
-                    <MessageSquare className="w-10 h-10 text-[#233a77] mb-3 opacity-50" />
-                    <p className="text-xs font-semibold text-gray-500">
-                        Chat with the AI to draft evacuation plans, or type a message above and hit Send SMS.
+                <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                    <MessageSquare className="w-8 h-8 text-slate-300 mb-3" />
+                    <p className="text-xs font-mono text-slate-400">
+                        Chat with AI to draft evacuation plans, or type a message above and hit Send SMS.
                     </p>
                 </div>
             )}
@@ -177,22 +175,22 @@ export default function SmsDashboard({ context }: { context?: any }) {
             {chatHistory.map((msg, idx) => (
                 <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'system' ? (
-                        <div className={`w-full text-center text-[10px] font-bold py-1 px-3 rounded-full my-1 mx-4 ${msg.isError ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                        <div className={`w-full text-center text-[10px] font-mono font-bold py-1 px-3 border ${msg.isError ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                             {msg.content}
                         </div>
                     ) : (
-                        <div className={`flex items-end gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`flex items-start gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                             
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'user' ? 'bg-[#3f7ce0] text-white' : 'bg-[#233a77] text-white'}`}>
+                            <div className={`w-6 h-6 flex items-center justify-center shrink-0 border ${msg.role === 'user' ? 'bg-blue-600 border-blue-700 text-white' : 'bg-slate-800 border-slate-900 text-white'}`}>
                                 {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                             </div>
 
-                            <div className={`p-3 text-xs leading-relaxed shadow-sm whitespace-pre-wrap ${
+                            <div className={`p-3 text-xs leading-relaxed shadow-sm whitespace-pre-wrap border ${
                                 msg.role === 'user' 
-                                ? 'bg-[#3f7ce0] text-white rounded-2xl rounded-br-sm' 
+                                ? 'bg-blue-50 text-blue-900 border-blue-200' 
                                 : msg.isError 
-                                    ? 'bg-red-50 text-red-700 border border-red-200 rounded-2xl rounded-bl-sm'
-                                    : 'bg-white text-gray-700 border border-gray-100 rounded-2xl rounded-bl-sm'
+                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                    : 'bg-gray-50 text-slate-800 border-gray-200'
                             }`}>
                                 {msg.content}
                             </div>
@@ -203,14 +201,14 @@ export default function SmsDashboard({ context }: { context?: any }) {
             
             {isAiTyping && (
                 <div className="flex w-full justify-start">
-                    <div className="flex items-end gap-2">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-[#233a77] text-white">
+                    <div className="flex items-start gap-2">
+                        <div className="w-6 h-6 flex items-center justify-center shrink-0 border bg-slate-800 border-slate-900 text-white">
                             <Bot className="w-3.5 h-3.5" />
                         </div>
-                        <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm p-3 shadow-sm flex items-center gap-1.5 h-[38px]">
-                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-1.5 h-1.5 bg-[#92cce5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        <div className="bg-gray-50 border border-gray-200 p-3 shadow-sm flex items-center gap-1.5 h-[38px]">
+                            <div className="w-1.5 h-1.5 bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-1.5 h-1.5 bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
                         </div>
                     </div>
                 </div>
@@ -219,13 +217,13 @@ export default function SmsDashboard({ context }: { context?: any }) {
         </div>
 
         {/* Input Area */}
-        <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 shrink-0">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-1 pr-2 focus-within:border-[#3f7ce0] focus-within:bg-white transition-all shadow-inner">
+        <form onSubmit={handleSend} className="p-3 bg-gray-50 shrink-0">
+            <div className="flex items-center gap-2 bg-white border border-gray-300 p-1 pr-2 focus-within:border-slate-800 focus-within:ring-1 focus-within:ring-slate-800 transition-all">
                 <textarea 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Draft alert message or ask AI..."
-                    className="flex-1 bg-transparent border-none focus:outline-none text-xs text-gray-800 p-2 resize-none h-10 max-h-24 scrollbar-thin"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-xs text-slate-800 p-2 resize-none h-10 max-h-24 scrollbar-thin"
                     onKeyDown={(e) => {
                         if(e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -236,7 +234,7 @@ export default function SmsDashboard({ context }: { context?: any }) {
                 <button 
                     type="submit"
                     disabled={!message.trim() || isAiTyping}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${!message.trim() || isAiTyping ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#233a77] text-white hover:bg-[#3f7ce0] shadow-md'}`}
+                    className={`w-8 h-8 flex items-center justify-center shrink-0 border transition-colors ${!message.trim() || isAiTyping ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed' : 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800'}`}
                 >
                     <Send className="w-3.5 h-3.5 ml-0.5" />
                 </button>

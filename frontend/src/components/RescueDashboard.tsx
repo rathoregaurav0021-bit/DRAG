@@ -31,33 +31,33 @@ export default function RescueDashboard({ onSelectGroup, onStrandedLoaded }: { o
   };
 
   return (
-    <div className="pointer-events-auto bg-white/95 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-red-200/50 max-w-[380px] w-full flex flex-col gap-4 max-h-[80vh]">
+    <div className="bg-white border border-gray-300 shadow-sm w-full flex flex-col pointer-events-auto h-full max-h-[80vh]">
       
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start p-4 border-b border-gray-200 bg-slate-900 text-white">
           <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-50 rounded-xl text-red-600">
-                  <LifeBuoy className="w-5 h-5" />
-              </div>
+              <LifeBuoy className="w-5 h-5 text-red-500" />
               <div>
-                  <h2 className="text-sm font-bold text-red-900 tracking-tight leading-none">Rescue Dispatch</h2>
-                  <p className="text-[10px] text-red-500 font-medium mt-1 leading-tight">Live SOS Triage</p>
+                  <h2 className="text-sm font-bold tracking-tight leading-none uppercase">Rescue Dispatch</h2>
+                  <p className="text-xs text-slate-400 font-mono mt-1 leading-tight">Live SOS Triage</p>
               </div>
           </div>
-          <div className="flex items-center gap-1 bg-red-100 px-2 py-1 rounded-full text-red-700 font-bold text-[9px]">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          <div className="flex items-center gap-1.5 border border-red-500/50 bg-red-950/30 px-2 py-1 text-red-500 font-bold text-[10px] uppercase">
+            <span className="w-2 h-2 bg-red-500 animate-pulse"></span>
             LIVE
           </div>
       </div>
 
-      <p className="text-xs text-gray-600 font-medium">
-          Triaging {strandedGroups.length} locations based on elevation data.
-      </p>
+      <div className="p-3 bg-gray-50 border-b border-gray-200">
+          <p className="text-xs text-gray-700 font-medium">
+              Triaging {strandedGroups.length} locations based on elevation data.
+          </p>
+      </div>
 
       {/* List */}
-      <div className="flex flex-col gap-3 overflow-y-auto pr-1 pb-2 custom-scrollbar">
+      <div className="flex flex-col overflow-y-auto custom-scrollbar">
           {isLoading ? (
-              <div className="py-10 flex justify-center text-red-300">
+              <div className="py-10 flex justify-center text-red-500">
                   <Loader2 className="w-6 h-6 animate-spin" />
               </div>
           ) : (
@@ -65,27 +65,27 @@ export default function RescueDashboard({ onSelectGroup, onStrandedLoaded }: { o
                   <div 
                       key={group.id} 
                       onClick={() => onSelectGroup(group)}
-                      className="p-3 rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md hover:border-red-200 transition-all cursor-pointer flex flex-col gap-2 group/card"
+                      className="p-4 border-b border-gray-200 bg-white hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer flex flex-col gap-3 group/card"
                   >
                       <div className="flex justify-between items-center">
-                          <div className="text-xs font-black text-gray-800 flex items-center gap-1.5">
-                              <span className="text-gray-400">#{index + 1}</span> {group.id}
+                          <div className="text-sm font-black text-slate-800 flex items-center gap-2">
+                              <span className="text-gray-400 font-mono">#{index + 1}</span> {group.id}
                           </div>
-                          <div className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${getTierColor(group.tier)}`}>
+                          <div className={`text-[10px] font-black uppercase px-2 py-1 border ${getTierColor(group.tier)}`}>
                               {group.tier}
                           </div>
                       </div>
 
-                      <div className="flex justify-between items-end mt-1">
+                      <div className="flex justify-between items-end">
                           <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                                  <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
+                                  <AlertTriangle className="w-4 h-4 text-orange-600" />
                                   Elev: {group.elevation}m
                               </div>
                           </div>
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 group-hover/card:text-red-500 transition-colors">
-                              <MapPin className="w-3 h-3" />
-                              View <ArrowRight className="w-3 h-3" />
+                          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 group-hover/card:text-red-600 transition-colors uppercase tracking-wider">
+                              <MapPin className="w-3.5 h-3.5" />
+                              View <ArrowRight className="w-3.5 h-3.5" />
                           </div>
                       </div>
                   </div>
