@@ -118,47 +118,49 @@ export default function SafeSpotDashboard({
   };
 
   return (
-    <div className="bg-white border border-gray-300 shadow-sm w-full flex flex-col pointer-events-auto">
+    <div className="bg-white w-full flex flex-col pointer-events-auto rounded-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex justify-between items-start p-4 border-b border-gray-200 bg-slate-900 text-white">
+        <div className="flex justify-between items-center p-5 border-b border-zinc-200 bg-white text-zinc-900">
             <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-slate-300" />
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                    <Shield className="w-6 h-6 text-emerald-600" />
+                </div>
                 <div>
-                    <h2 className="text-sm font-bold tracking-tight leading-none uppercase">AI Evacuation</h2>
-                    <p className="text-xs text-slate-400 font-mono mt-1 leading-tight">Map click sets location.</p>
+                    <h2 className="text-lg font-bold tracking-tight text-zinc-900">Evacuation Route</h2>
+                    <p className="text-sm text-zinc-500 font-medium mt-0.5">Click the map to set a start point.</p>
                 </div>
             </div>
             {userLocation && (
-                <button onClick={handleReset} className="text-slate-400 hover:text-red-500 transition-colors" title="Clear Location">
+                <button onClick={handleReset} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Clear Location">
                     <XCircle className="w-5 h-5" />
                 </button>
             )}
         </div>
 
         {/* Coordinates Display */}
-        <div className="p-4 flex flex-col gap-4">
-            <div className={`p-3 border flex flex-col gap-1 ${userLocation ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                    <MapPin className="w-3 h-3" /> Current Location
+        <div className="p-5 flex flex-col gap-5">
+            <div className={`p-4 rounded-xl flex flex-col gap-1.5 transition-all ${userLocation ? 'bg-zinc-50 border-2 border-zinc-200' : 'bg-zinc-50/50 border-2 border-dashed border-zinc-200'}`}>
+                <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                    <MapPin className="w-3.5 h-3.5" /> Start Position
                 </div>
                 {userLocation ? (
-                    <div className="text-xs font-black text-slate-800 font-mono">
+                    <div className="text-lg font-bold text-zinc-900 tracking-tight">
                         {userLocation[0].toFixed(5)}, {userLocation[1].toFixed(5)}
                     </div>
                 ) : (
-                    <div className="text-xs font-semibold text-gray-400 italic">
-                        Click on map to set start point...
+                    <div className="text-sm font-medium text-zinc-400">
+                        Waiting for map selection...
                     </div>
                 )}
             </div>
             
             {destinationCoords && (
-                <div className="p-3 border bg-emerald-50 border-emerald-200 flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                        <MapPin className="w-3 h-3" /> Safe Zone Coords
+                <div className="p-4 rounded-xl border-2 bg-emerald-50 border-emerald-200 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                        <MapPin className="w-3.5 h-3.5" /> Safe Zone Target
                     </div>
-                    <div className="text-xs font-black text-emerald-900 font-mono">
+                    <div className="text-lg font-bold text-emerald-900 tracking-tight">
                         {destinationCoords[0].toFixed(5)}, {destinationCoords[1].toFixed(5)}
                     </div>
                 </div>
@@ -167,22 +169,24 @@ export default function SafeSpotDashboard({
             <button 
                 onClick={handleFindRoute}
                 disabled={!userLocation || isSimulating}
-                className={`w-full py-2.5 font-bold text-white text-xs border transition-colors flex items-center justify-center gap-2 ${!userLocation ? 'bg-gray-300 border-gray-400 text-gray-500 cursor-not-allowed' : 'bg-slate-900 border-slate-900 hover:bg-slate-800 active:bg-slate-700'}`}
+                className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2 ${!userLocation ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : 'bg-zinc-900 hover:bg-black text-white active:scale-[0.98]'}`}
             >
-                {isSimulating ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Navigation className="w-3.5 h-3.5" />}
-                {isSimulating ? "Calculating..." : (routeGeoJSON ? "Recalculate Route" : "Find Safe Route")}
+                {isSimulating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Navigation className="w-4 h-4" />}
+                {isSimulating ? "Calculating Route..." : (routeGeoJSON ? "Recalculate Route" : "Find Safe Route")}
             </button>
 
             {destinationName && (
-                <div className="bg-gray-50 p-3 border border-gray-200 mt-2">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Destination Name</div>
-                    <div className="text-sm font-black text-slate-800 leading-tight mb-4 truncate" title={destinationName}>{destinationName}</div>
+                <div className="mt-2 pt-5 border-t border-zinc-200 flex flex-col gap-4">
+                    <div>
+                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Destination</div>
+                        <div className="text-xl font-bold text-zinc-900 leading-tight" title={destinationName}>{destinationName}</div>
+                    </div>
                     
                     <button 
                         onClick={handlePrepareSMS}
-                        className="w-full py-2 font-bold text-[11px] transition-colors flex items-center justify-center gap-1.5 bg-blue-600 border border-blue-700 text-white hover:bg-blue-700"
+                        className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-blue-600 shadow-md shadow-blue-600/20 text-white hover:bg-blue-700 active:scale-[0.98]"
                     >
-                        <Smartphone className="w-3.5 h-3.5" />
+                        <Smartphone className="w-4 h-4" />
                         Open SMS Dispatch
                     </button>
                 </div>

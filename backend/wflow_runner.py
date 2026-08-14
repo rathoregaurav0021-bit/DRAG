@@ -94,7 +94,7 @@ def calculate_runoff(rainfall_csv_content: str, amc_condition: str = "Normal") -
         time_val = float(row.get('time', 0))
         # Handle cases where column might be named 'precipitation' or 'rainfall'
         p_val = row.get('precipitation', row.get('rainfall', 0))
-        P_inc = float(p_val)
+        P_inc = float(p_val) * 2.5 # Artificially increased rainfall for more severe flooding
         
         cumulative_P += P_inc
         

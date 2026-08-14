@@ -131,12 +131,12 @@ export default function Home() {
           {activeTab && activeTab !== 'recipients' && (
             <motion.div 
                className="relative flex items-start"
-               animate={{ x: isPanelCollapsed ? -496 : 0 }}
+               animate={{ x: isPanelCollapsed ? (activeTab === 'overview' ? -336 : activeTab === 'safe-spot' ? -396 : -496) : 0 }}
                transition={{ duration: 0.3, ease: "easeInOut" }}
                // Move panels from bottom to just below the header horizontally
                style={{ top: '80px', left: '16px', position: 'absolute' }}
             >
-              <div className="pointer-events-auto bg-white shadow-xl border border-gray-200 rounded-2xl flex flex-col overflow-hidden w-[480px] max-h-[calc(100vh-140px)] z-[1000]">
+              <div className={`pointer-events-auto bg-white shadow-xl border border-gray-200 rounded-2xl flex flex-col overflow-hidden max-h-[calc(100vh-140px)] z-[1000] ${activeTab === 'overview' ? 'w-[320px]' : activeTab === 'safe-spot' ? 'w-[380px]' : 'w-[480px]'}`}>
                 {/* Content switching based on activeTab */}
                 {activeTab === 'overview' && <MapOverview layers={layers} setLayers={setLayers} />}
                 {activeTab === 'meteorology' && <RainfallDashboard setLayers={setLayers} setAiSafeSpots={setAiSafeSpots} />}
@@ -244,10 +244,11 @@ export default function Home() {
             />
             {/* Drawer */}
             <motion.div 
-              initial={{ x: '-100%' }}
+              initial={{ x: -320 }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.15 }}
+              exit={{ x: -320 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+              style={{ willChange: "transform" }}
               className="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-[3010] pointer-events-auto flex flex-col"
             >
               <div className="flex items-center justify-between p-4 border-b border-gray-200">

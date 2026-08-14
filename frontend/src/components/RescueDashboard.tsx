@@ -42,10 +42,7 @@ export default function RescueDashboard({ onSelectGroup, onStrandedLoaded }: { o
                   <p className="text-xs text-slate-400 font-mono mt-1 leading-tight">Live SOS Triage</p>
               </div>
           </div>
-          <div className="flex items-center gap-1.5 border border-red-500/50 bg-red-950/30 px-2 py-1 text-red-500 font-bold text-[10px] uppercase">
-            <span className="w-2 h-2 bg-red-500 animate-pulse"></span>
-            LIVE
-          </div>
+
       </div>
 
       <div className="p-3 bg-gray-50 border-b border-gray-200">

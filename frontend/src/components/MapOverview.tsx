@@ -16,7 +16,6 @@ export default function MapOverview({ layers, setLayers }: any) {
     { id: 'roads', label: 'Roads' },
     { id: 'buildings', label: 'Buildings' },
     { id: 'shelters', label: 'Shelters' },
-    { id: 'prePeakFlood', label: 'Pre-Peak Flood' },
     { id: 'floodDepth', label: 'Peak Flood' }
   ];
 
@@ -42,9 +41,6 @@ export default function MapOverview({ layers, setLayers }: any) {
               <div className={`w-3 h-3 border ${layers[item.id as keyof typeof layers] ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-400'}`}></div>
               <span>{item.label}</span>
             </div>
-            <span className="text-xs text-gray-400 font-mono">
-              {layers[item.id as keyof typeof layers] ? 'ON' : 'OFF'}
-            </span>
           </button>
         ))}
       </div>

@@ -223,14 +223,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
 
 
 
-        {/* Raster Layer: Pre-Peak Flood Depth */}
-        {layers.prePeakFlood && (
-          <ImageOverlay 
-            url={`/data/pre_peak_flood.png?t=${new Date().getTime()}`}
-            bounds={[[26.2501389, 91.9968055], [26.5329166, 92.5465277]]}
-            opacity={0.7}
-          />
-        )}
+
 
         {/* Raster Layer: ANUGA Peak Flood Depth */}
         {layers.floodDepth && (
@@ -346,7 +339,12 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
           <Marker 
             key={`safe-spot-${index}`} 
             position={[spot.lat, spot.lng]}
-            icon={L.divIcon({ className: 'bg-transparent', html: '<div class="relative flex items-center justify-center w-14 h-14 group"><div class="absolute inset-0 bg-emerald-400 rounded-full animate-ping opacity-30"></div><div class="absolute inset-2 bg-emerald-500/20 rounded-full border border-emerald-400/50 backdrop-blur-sm"></div><div class="relative z-10 w-7 h-7 bg-emerald-500 rounded-full border-2 border-white shadow-[0_0_15px_rgba(16,185,129,0.6)] flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div>', iconSize: [56, 56], iconAnchor: [28, 28] })}><Popup><div className="font-sans min-w-[160px]"><div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><strong className="text-emerald-800 text-[13px] tracking-wide uppercase">Verified Safe Zone</strong></div><div className="text-xs text-gray-600 mt-2 border-t pt-2 leading-relaxed"><span className="font-semibold text-gray-900">Area:</span> {spot.area ? Math.round(spot.area * 900).toLocaleString() : 0} m²<br/><span className="font-semibold text-gray-900">Coords:</span> {spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}<br/><span className="font-semibold text-gray-900">Status:</span> Above Flood Level</div></div></Popup>
+            icon={L.icon({
+              iconUrl: '/safe_spot_icon_transparent.png',
+              iconSize: [80, 80],
+              iconAnchor: [40, 80],
+              popupAnchor: [0, -80]
+            })}><Popup><div className="font-sans min-w-[160px]"><div className="flex items-center gap-2 mb-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><strong className="text-emerald-800 text-[13px] tracking-wide uppercase">Verified Safe Zone</strong></div><div className="text-xs text-gray-600 mt-2 border-t pt-2 leading-relaxed"><span className="font-semibold text-gray-900">Area:</span> {spot.area ? Math.round(spot.area * 900).toLocaleString() : 0} m²<br/><span className="font-semibold text-gray-900">Coords:</span> {spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}<br/><span className="font-semibold text-gray-900">Status:</span> Above Flood Level</div></div></Popup>
           </Marker>
             ))} 
           </LayerGroup>
