@@ -186,7 +186,7 @@ def get_news():
         items = root.findall('.//item')
         
         news_list = []
-        for i, item in enumerate(items[:4]): # Top 4 news items
+        for i, item in enumerate(items[:10]): # Top 10 news items
             title = item.find('title').text if item.find('title') is not None else "News Update"
             pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ""
             source = item.find('source').text if item.find('source') is not None else "Google News"

@@ -17,14 +17,18 @@ body {
 /* Custom Leaflet Controls - Google Maps Style */
 .leaflet-bar {
   border: none !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
-  border-radius: 8px !important; /* Slightly rounded for modern look */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
+  border-radius: 12px !important;
   overflow: hidden;
 }
 .leaflet-bar a {
   background-color: #ffffff !important;
-  color: #000000 !important; /* Pure black icons */
-  font-weight: 900 !important; /* Very bold to be prominent */
+  color: #1e293b !important; /* slate-800 */
+  font-weight: bold !important;
+  font-size: 24px !important;
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
   border-bottom: 1px solid #e2e8f0 !important;
   display: flex !important;
   align-items: center !important;

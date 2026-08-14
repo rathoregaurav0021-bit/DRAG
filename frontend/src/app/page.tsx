@@ -89,8 +89,8 @@ export default function Home() {
         {/* Header Row: Hamburger + Title + Map Layers Pill */}
         <div className="flex flex-row items-center gap-3 w-full max-w-[calc(100vw-32px)]">
           {/* Floating Top Search/Title Bar */}
-          <div className="bg-white rounded-full shadow-md px-4 py-3 flex items-center w-max pointer-events-auto border border-gray-200 shrink-0">
-            <button onClick={() => setIsMenuOpen(true)} className="p-1 mr-2 rounded-full hover:bg-gray-100 transition-colors">
+          <div className="bg-white rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.15),0_1px_3px_rgba(0,0,0,0.1)] px-5 py-3 flex items-center w-max pointer-events-auto shrink-0">
+            <button onClick={() => setIsMenuOpen(true)} className="p-1 mr-2 rounded-lg hover:bg-gray-100 transition-colors">
               <Menu className="w-5 h-5 text-slate-800" />
             </button>
             <h1 className="text-lg font-bold text-slate-800 tracking-tight pr-2">FloodShield</h1>
@@ -100,7 +100,7 @@ export default function Home() {
           <div className="pointer-events-auto">
             {navItems.filter(i => i.id === 'overview').map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const isActive = activeTab === item.id && !isPanelCollapsed;
               return (
                 <button
                   key={item.id}
@@ -112,7 +112,7 @@ export default function Home() {
                       setIsPanelCollapsed(false);
                     }
                   }}
-                  className={`flex items-center px-4 py-2 text-xs font-bold rounded-full shadow-sm border transition-colors whitespace-nowrap ${
+                  className={`flex items-center px-4 py-2 text-sm font-bold rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.15),0_1px_3px_rgba(0,0,0,0.1)] transition-colors whitespace-nowrap ${
                     isActive 
                       ? 'bg-slate-900 border-slate-900 text-white' 
                       : 'bg-white border-gray-200 text-slate-700 hover:bg-gray-50'
@@ -130,13 +130,13 @@ export default function Home() {
         <AnimatePresence>
           {activeTab && activeTab !== 'recipients' && (
             <motion.div 
-               className="relative flex items-start"
-               animate={{ x: isPanelCollapsed ? (activeTab === 'overview' ? -336 : activeTab === 'safe-spot' ? -396 : -496) : 0 }}
+               className="relative flex items-start pl-4"
+               animate={{ x: isPanelCollapsed ? "calc(-100% + 24px)" : 0 }}
                transition={{ duration: 0.3, ease: "easeInOut" }}
                // Move panels from bottom to just below the header horizontally
-               style={{ top: '80px', left: '16px', position: 'absolute' }}
+               style={{ top: '80px', left: '0', position: 'absolute' }}
             >
-              <div className={`pointer-events-auto bg-white shadow-xl border border-gray-200 rounded-2xl flex flex-col overflow-hidden max-h-[calc(100vh-140px)] z-[1000] ${activeTab === 'overview' ? 'w-[320px]' : activeTab === 'safe-spot' ? 'w-[380px]' : 'w-[480px]'}`}>
+              <div className={`pointer-events-auto bg-white shadow-xl border border-gray-200 rounded-2xl flex flex-col overflow-y-auto h-fit max-h-[calc(100vh-140px)] z-[1000] ${activeTab === 'overview' ? 'w-[92vw] sm:w-[320px]' : activeTab === 'safe-spot' ? 'w-[92vw] sm:w-[380px]' : 'w-[92vw] sm:w-[440px]'}`}>
                 {/* Content switching based on activeTab */}
                 {activeTab === 'overview' && <MapOverview layers={layers} setLayers={setLayers} />}
                 {activeTab === 'meteorology' && <RainfallDashboard setLayers={setLayers} setAiSafeSpots={setAiSafeSpots} />}
@@ -201,12 +201,12 @@ export default function Home() {
       </AnimatePresence>
 
       {/* FLOATING RIGHT PANELS (For global widgets like News) */}
-      <div className="absolute top-16 right-0 p-4 z-[500] pointer-events-none flex items-start justify-end w-max">
+      <div className="absolute top-4 right-4 p-4 z-[500] pointer-events-none flex items-start justify-end w-max h-[calc(100vh-32px)]">
          <AnimatePresence>
            {(!activeTab || activeTab === 'overview') && (
              <motion.div 
-               className="relative flex items-start"
-               animate={{ x: isRightPanelCollapsed ? 396 : 0 }}
+               className="relative flex items-start h-full"
+               animate={{ x: isRightPanelCollapsed ? 412 : 0 }}
                transition={{ duration: 0.3, ease: "easeInOut" }}
              >
                 {/* Collapse Button attached to the left of the right panel */}
@@ -220,7 +220,7 @@ export default function Home() {
                     </div>
                 </button>
 
-                <div className="pointer-events-auto bg-white shadow-lg border border-gray-200 rounded-xl flex flex-col overflow-hidden w-[380px] max-h-[calc(100vh-250px)]">
+                <div className="pointer-events-auto bg-white shadow-lg border border-gray-200 rounded-xl flex flex-col w-[380px] h-full overflow-hidden">
                     <NewsDashboard />
                 </div>
              </motion.div>
@@ -260,7 +260,7 @@ export default function Home() {
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
-              <div className="flex flex-col py-2 overflow-y-auto">
+              <div className="flex-1 flex flex-col py-2 overflow-y-auto">
                 {navItems.filter(i => i.id !== 'overview').map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
@@ -283,15 +283,18 @@ export default function Home() {
                     </button>
                   );
                 })}
-                <div className="border-t border-gray-200 my-2"></div>
-                <div className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">System Status</div>
-                <div className="px-6 py-2 text-sm text-slate-600 flex items-center justify-between">
+              </div>
+              
+              {/* Footer System Status */}
+              <div className="border-t border-gray-200 bg-gray-50 py-4 mt-auto">
+                <div className="px-6 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Status</div>
+                <div className="px-6 py-1.5 text-sm text-slate-600 flex items-center justify-between">
                    <span>Backend Link</span>
-                   <span className="text-green-500 font-bold flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Active</span>
+                   <span className="text-green-500 font-bold flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Active</span>
                 </div>
-                <div className="px-6 py-2 text-sm text-slate-600 flex items-center justify-between">
+                <div className="px-6 py-1.5 text-sm text-slate-600 flex items-center justify-between">
                    <span>OSM Cache</span>
-                   <span className="font-mono text-xs">Synced</span>
+                   <span className="font-mono text-xs text-slate-400">Synced</span>
                 </div>
               </div>
             </motion.div>

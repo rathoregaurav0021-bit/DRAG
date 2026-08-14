@@ -102,11 +102,11 @@ const RasterLayer = ({ url, options }: { url: string; options?: any }) => {
         e.preventDefault(); 
         map.flyTo(center, zoom, { duration: 1.5 }); 
       }}
-      className="absolute z-[1000] cursor-pointer bg-white/95 hover:bg-white rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] flex items-center justify-center w-[36px] h-[36px]"
-      style={{ right: '68px', bottom: '42.5px' }}
+      className="absolute z-[1000] cursor-pointer bg-white hover:bg-gray-50 rounded-[12px] flex items-center justify-center w-[44px] h-[44px]"
+      style={{ left: '66px', bottom: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
       title="Recenter Map"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 hover:text-blue-600 transition-colors">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-800 hover:text-blue-600 transition-colors">
         <circle cx="12" cy="12" r="5" />
         <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
         <line x1="12" y1="2" x2="12" y2="5" />
@@ -207,13 +207,13 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         ref={mapRef}
       >
         <MapClickHandler setUserLocation={setUserLocation} />
-        <ZoomControl position="bottomright" />
+        <ZoomControl position="bottomleft" />
         <ResetViewButton center={bhuragaonPosition} zoom={13} />
         
         {/* Base Map Layer */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
         {/* Raster Layer: DEM */}
@@ -257,7 +257,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
           <GeoJSON 
             key="roads-layer"
             data={roadsData} 
-            style={{ color: '#555', weight: 2, opacity: 0.8 }} 
+            style={{ color: '#334155', weight: 1.2, opacity: 0.6, lineCap: 'round', lineJoin: 'round' }} 
           />
         )}
 

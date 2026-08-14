@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CloudRain, Wind, Droplets, ThermometerSun, AlertCircle, Newspaper, Radio, Loader2 } from 'lucide-react';
+import { CloudRain, Wind, Droplets, ThermometerSun, AlertCircle, Newspaper, Radio, Loader2, Navigation, Bookmark, Target, Smartphone, Share2 } from 'lucide-react';
 
 export default function NewsDashboard() {
   const [weatherData, setWeatherData] = useState({
@@ -41,36 +41,30 @@ export default function NewsDashboard() {
 
 
   return (
-    <div className="w-full h-full flex flex-col bg-white min-h-0">
+    <div className="w-full h-full flex flex-col bg-white min-h-0 flex-1">
       
-      {/* Weather Header */}
-      <div className="bg-slate-900 text-white p-4 border-b border-gray-300">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xs font-bold text-slate-300 uppercase tracking-widest mb-1">Bhuragaon, Assam</h2>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-black">{weatherData.temp}</span>
-              <CloudRain className="w-6 h-6 text-slate-300" />
-            </div>
-            <p className="text-sm font-medium mt-1">{weatherData.condition}</p>
-          </div>
-        </div>
+      {/* Header Image */}
+      <div className="w-full h-44 shrink-0">
+        <img src="/bhuragaon_landscape.png" alt="Bhuragaon" className="w-full h-full object-cover" />
+      </div>
 
-        <div className="flex gap-4 mt-4 pt-3 border-t border-slate-700">
-          <div className="flex items-center gap-2">
-            <Droplets className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold">{weatherData.humidity} Humidity</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wind className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold">{weatherData.wind} Wind</span>
-          </div>
+      {/* Title & Weather */}
+      <div className="p-5 border-b border-gray-200 shrink-0 flex justify-between items-start">
+        <div>
+          <h2 className="text-[28px] font-normal text-gray-900 leading-tight">Bhuragaon</h2>
+          <div className="text-gray-600 text-sm mt-1">ভুরাগাঁও</div>
+          <div className="text-gray-500 text-sm mt-0.5">Assam</div>
+        </div>
+        <div className="flex flex-col items-end pt-1">
+          <CloudRain className="w-8 h-8 text-gray-400 mb-1" strokeWidth={1} />
+          <div className="text-gray-600 text-[14px] mt-1">{weatherData.condition} · {weatherData.temp}</div>
+          <div className="text-gray-500 text-[13px]">3:14 AM</div>
         </div>
       </div>
 
       {/* News Feed */}
-      <div className="p-4 flex flex-col gap-3 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar min-h-0">
-        <div className="flex items-center gap-2 text-slate-800 mb-2 border-b border-gray-200 pb-2 shrink-0">
+      <div className="p-5 flex flex-col gap-3 flex-1 overflow-y-auto custom-scrollbar min-h-0">
+        <div className="flex items-center gap-2 text-slate-800 mb-2 pb-2 border-b border-gray-200 shrink-0">
           <Radio className="w-4 h-4 text-red-600" />
           <h3 className="font-bold text-xs uppercase tracking-wider">Live Updates</h3>
         </div>
@@ -104,7 +98,6 @@ export default function NewsDashboard() {
           )}
         </div>
       </div>
-
     </div>
   );
 }

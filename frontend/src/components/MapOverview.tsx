@@ -31,14 +31,16 @@ export default function MapOverview({ layers, setLayers }: any) {
           <button 
             key={item.id} 
             onClick={() => toggleLayer(item.id as keyof typeof layers)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium border transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all mb-2 ${
                 layers[item.id as keyof typeof layers] 
-                ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                : 'bg-white border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-200'
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 border ${layers[item.id as keyof typeof layers] ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-400'}`}></div>
+              <div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${layers[item.id as keyof typeof layers] ? 'bg-blue-500 border-blue-500' : 'bg-transparent border-slate-400'}`}>
+                 {layers[item.id as keyof typeof layers] && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+              </div>
               <span>{item.label}</span>
             </div>
           </button>
