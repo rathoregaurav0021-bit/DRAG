@@ -135,6 +135,84 @@ def add_stranded_group(req: StrandedRequest):
 def get_stranded_groups():
     return {"status": "success", "data": real_stranded_cache}
 
+import xml.etree.ElementTree as ET
+
+@app.get("/api/weather")
+def get_weather():
+    try:
+        # Open-Meteo API for Bhuragaon (26.37, 92.26)
+        url = "https://api.open-meteo.com/v1/forecast?latitude=26.37&longitude=92.26&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode())
+            
+        current = data.get("current", {})
+        temp = current.get("temperature_2m", 0)
+        humidity = current.get("relative_humidity_2m", 0)
+        wind = current.get("wind_speed_10m", 0)
+        code = current.get("weather_code", 0)
+        
+        # Basic WMO Weather code mapping
+        condition = "Clear"
+        if code in [61, 63, 65, 80, 81, 82]: condition = "Rain"
+        elif code in [71, 73, 75, 85, 86]: condition = "Snow"
+        elif code in [95, 96, 99]: condition = "Thunderstorm"
+        elif code in [1, 2, 3]: condition = "Partly Cloudy"
+        elif code in [45, 48]: condition = "Fog"
+        elif code >= 50 and code <= 55: condition = "Drizzle"
+        
+        return {
+            "status": "success",
+            "data": {
+                "temp": f"{temp}°C",
+                "condition": condition,
+                "humidity": f"{humidity}%",
+                "wind": f"{wind} km/h"
+            }
+        }
+    except Exception as e:
+        print("Weather Error:", e)
+        return {"status": "error", "message": "Failed to fetch weather"}
+
+@app.get("/api/news")
+def get_news():
+    try:
+        url = "https://news.google.com/rss/search?q=Assam+floods&hl=en-IN&gl=IN&ceid=IN:en"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            xml_data = response.read()
+            
+        root = ET.fromstring(xml_data)
+        items = root.findall('.//item')
+        
+        news_list = []
+        for i, item in enumerate(items[:4]): # Top 4 news items
+            title = item.find('title').text if item.find('title') is not None else "News Update"
+            pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ""
+            source = item.find('source').text if item.find('source') is not None else "Google News"
+            
+            # Simple heuristic for alert types
+            lower_title = title.lower()
+            if "alert" in lower_title or "danger" in lower_title or "red" in lower_title:
+                news_type = "alert"
+            elif "warning" in lower_title or "rising" in lower_title or "heavy" in lower_title:
+                news_type = "warning"
+            else:
+                news_type = "news"
+                
+            news_list.append({
+                "id": i + 1,
+                "title": title.split(" - ")[0], # Remove publisher from title end
+                "time": pub_date.split(" ")[4] + " " + pub_date.split(" ")[1:4][0] if len(pub_date.split(" ")) > 4 else "Recently", # Simplify date
+                "type": news_type,
+                "source": source
+            })
+            
+        return {"status": "success", "data": news_list}
+    except Exception as e:
+        print("News Error:", e)
+        return {"status": "error", "message": "Failed to fetch news"}
+
 import urllib.request
 import json
 import os

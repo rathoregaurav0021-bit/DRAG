@@ -10,6 +10,7 @@ import SmsDashboard from '@/components/SmsDashboard';
 import RainfallDashboard from '@/components/RainfallDashboard';
 import RecipientsDashboard from '@/components/RecipientsDashboard';
 import RescueDashboard from '@/components/RescueDashboard';
+import NewsDashboard from '@/components/NewsDashboard';
 
 // Dynamically import LeafletMap for the global background
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), { 
@@ -124,9 +125,14 @@ export default function Home() {
         <AnimatePresence mode="wait">
           
           {activeTab === 'overview' && (
-            <motion.div key="overview" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
-              <MapOverview layers={layers} setLayers={setLayers} />
-            </motion.div>
+            <>
+              <motion.div key="overview" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute bottom-12 left-6">
+                <MapOverview layers={layers} setLayers={setLayers} />
+              </motion.div>
+              <motion.div key="news" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, delay: 0.1 }} className="absolute top-6 right-6">
+                <NewsDashboard />
+              </motion.div>
+            </>
           )}
 
           {activeTab === 'meteorology' && (
