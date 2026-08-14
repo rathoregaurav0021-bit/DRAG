@@ -66,6 +66,7 @@ export default function Home() {
   ];
 
   return (
+    <>
     <main className="relative flex h-screen w-full bg-[#e1f1ee] overflow-hidden font-sans text-slate-800">
       
       {/* GLOBAL BACKGROUND MAP */}
@@ -85,17 +86,19 @@ export default function Home() {
       {/* UI OVERLAY - Top Left (Title, Search, Pills) */}
       <div className="absolute top-0 left-0 p-4 z-[1000] pointer-events-none flex flex-col gap-3 w-full">
         
-        {/* Header Row: Search + Pills */}
+        {/* Header Row: Hamburger + Title + Map Layers Pill */}
         <div className="flex flex-row items-center gap-3 w-full max-w-[calc(100vw-32px)]">
           {/* Floating Top Search/Title Bar */}
-          <div className="bg-white rounded-full shadow-md px-5 py-3 flex items-center w-max pointer-events-auto border border-gray-200 shrink-0">
-            <Shield className="w-5 h-5 mr-3 text-blue-600" />
+          <div className="bg-white rounded-full shadow-md px-4 py-3 flex items-center w-max pointer-events-auto border border-gray-200 shrink-0">
+            <button onClick={() => setIsMenuOpen(true)} className="p-1 mr-2 rounded-full hover:bg-gray-100 transition-colors">
+              <Menu className="w-5 h-5 text-slate-800" />
+            </button>
             <h1 className="text-lg font-bold text-slate-800 tracking-tight pr-2">FloodShield</h1>
           </div>
 
-          {/* Category Pills */}
-          <div className="flex gap-2 pointer-events-auto overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0 max-w-full">
-            {navItems.map((item) => {
+          {/* Map Layers Pill (Outside Hamburger) */}
+          <div className="pointer-events-auto">
+            {navItems.filter(i => i.id === 'overview').map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
@@ -127,51 +130,48 @@ export default function Home() {
         <AnimatePresence>
           {activeTab && activeTab !== 'recipients' && (
             <motion.div 
-               className="relative flex items-start mt-1"
-               animate={{ x: isPanelCollapsed ? -416 : 0 }}
+               className="relative flex items-start"
+               animate={{ x: isPanelCollapsed ? -496 : 0 }}
                transition={{ duration: 0.3, ease: "easeInOut" }}
+               // Move panels from bottom to just below the header horizontally
+               style={{ top: '80px', left: '16px', position: 'absolute' }}
             >
-                <div className="pointer-events-auto bg-white shadow-lg border border-gray-200 rounded-xl flex flex-col overflow-hidden w-[400px] max-h-[calc(100vh-140px)]">
-                    <div className="flex-1 overflow-y-auto bg-gray-50 w-full relative">
-                        {activeTab === 'overview' && (
-                            <MapOverview layers={layers} setLayers={setLayers} />
-                        )}
-                        {activeTab === 'meteorology' && (
-                            <RainfallDashboard setLayers={setLayers} setAiSafeSpots={setAiSafeSpots} />
-                        )}
-                        {activeTab === 'safe-spot' && (
-                            <SafeSpotDashboard 
-                            setLayers={setLayers}
-                            userLocation={userLocation}
-                            setUserLocation={setUserLocation}
-                            routeGeoJSON={routeGeoJSON}
-                            setAiSafeSpots={setAiSafeSpots}
-                            setRouteGeoJSON={setRouteGeoJSON}
-                            destinationName={destinationName}
-                            setDestinationName={setDestinationName}
-                            onNavigateToSms={handleNavigateToSms} 
-                            />
-                        )}
-                        {activeTab === 'rescue' && (
-                            <RescueDashboard 
-                            onSelectGroup={(group) => setActiveRescueGroup(group)} 
-                            onStrandedLoaded={(groups) => setStrandedGroups(groups)}
-                            />
-                        )}
-                        {activeTab === 'sms' && (
-                            <SmsDashboard context={smsContext} />
-                        )}
-                    </div>
-                </div>
-                
-                {/* Collapse Button attached to the panel */}
-                <button
-                    onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                    className="pointer-events-auto bg-white border border-gray-200 border-l-0 shadow-md flex items-center justify-center w-6 h-12 rounded-r-md hover:bg-gray-50 text-gray-500 mt-4 relative z-[1010]"
-                    title={isPanelCollapsed ? "Expand Panel" : "Collapse Panel"}
-                >
-                    {isPanelCollapsed ? <ChevronRight className="w-4 h-4 text-blue-600" /> : <ChevronLeft className="w-4 h-4" />}
-                </button>
+              <div className="pointer-events-auto bg-white shadow-xl border border-gray-200 rounded-2xl flex flex-col overflow-hidden w-[480px] max-h-[calc(100vh-140px)] z-[1000]">
+                {/* Content switching based on activeTab */}
+                {activeTab === 'overview' && <MapOverview layers={layers} setLayers={setLayers} />}
+                {activeTab === 'meteorology' && <RainfallDashboard setLayers={setLayers} setAiSafeSpots={setAiSafeSpots} />}
+                {activeTab === 'safe-spot' && (
+                  <SafeSpotDashboard 
+                    setLayers={setLayers}
+                    userLocation={userLocation}
+                    setUserLocation={setUserLocation}
+                    routeGeoJSON={routeGeoJSON}
+                    setAiSafeSpots={setAiSafeSpots}
+                    setRouteGeoJSON={setRouteGeoJSON}
+                    destinationName={destinationName}
+                    setDestinationName={setDestinationName}
+                    onNavigateToSms={handleNavigateToSms} 
+                  />
+                )}
+                {activeTab === 'rescue' && (
+                  <RescueDashboard 
+                    onSelectGroup={(group) => setActiveRescueGroup(group)} 
+                    onStrandedLoaded={(groups) => setStrandedGroups(groups)}
+                  />
+                )}
+                {activeTab === 'sms' && (
+                  <SmsDashboard context={smsContext} />
+                )}
+              </div>
+              
+              {/* Collapse Button attached to the right of the panel */}
+              <button
+                 onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+                 className="pointer-events-auto bg-white border border-gray-200 border-l-0 shadow-md flex items-center justify-center w-6 h-12 rounded-r-md hover:bg-gray-50 text-gray-500 mt-4 relative z-[990]"
+                 title={isPanelCollapsed ? "Expand Panel" : "Collapse Panel"}
+              >
+                 {isPanelCollapsed ? <ChevronRight className="w-4 h-4 text-blue-600" /> : <ChevronLeft className="w-4 h-4" />}
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -201,24 +201,26 @@ export default function Home() {
       </AnimatePresence>
 
       {/* FLOATING RIGHT PANELS (For global widgets like News) */}
-      <div className="absolute top-4 right-0 p-4 z-[500] pointer-events-none flex items-start justify-end w-max">
+      <div className="absolute top-16 right-0 p-4 z-[500] pointer-events-none flex items-start justify-end w-max">
          <AnimatePresence>
            {(!activeTab || activeTab === 'overview') && (
              <motion.div 
                className="relative flex items-start"
-               animate={{ x: isRightPanelCollapsed ? 416 : 0 }}
+               animate={{ x: isRightPanelCollapsed ? 396 : 0 }}
                transition={{ duration: 0.3, ease: "easeInOut" }}
              >
                 {/* Collapse Button attached to the left of the right panel */}
                 <button
                     onClick={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)}
-                    className="pointer-events-auto bg-white border border-gray-200 border-r-0 shadow-md flex items-center justify-center w-6 h-12 rounded-l-md hover:bg-gray-50 text-gray-500 mt-4 relative z-[1010]"
+                    className="pointer-events-auto bg-white border border-gray-200 border-r-0 shadow-md flex items-center justify-center w-10 h-12 rounded-l-xl hover:bg-slate-50 transition-colors mt-4 relative z-[1010]"
                     title={isRightPanelCollapsed ? "Expand Panel" : "Collapse Panel"}
                 >
-                    {isRightPanelCollapsed ? <ChevronLeft className="w-4 h-4 text-blue-600" /> : <ChevronRight className="w-4 h-4" />}
+                    <div className="w-6 h-6 bg-[#1e88e5] rounded-full flex items-center justify-center text-white font-bold font-serif shadow-sm text-sm">
+                        i
+                    </div>
                 </button>
 
-                <div className="pointer-events-auto bg-white shadow-lg border border-gray-200 rounded-xl flex flex-col overflow-hidden w-[400px] max-h-[calc(100vh-140px)]">
+                <div className="pointer-events-auto bg-white shadow-lg border border-gray-200 rounded-xl flex flex-col overflow-hidden w-[380px] max-h-[calc(100vh-250px)]">
                     <NewsDashboard />
                 </div>
              </motion.div>
@@ -227,5 +229,75 @@ export default function Home() {
       </div>
 
     </main>
+
+      {/* Sidebar Drawer (Google Maps style) */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="fixed inset-0 bg-black/40 z-[3000] pointer-events-auto"
+            />
+            {/* Drawer */}
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.15 }}
+              className="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-[3010] pointer-events-auto flex flex-col"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-xl font-bold text-slate-800">FloodShield Menu</h2>
+                </div>
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
+              <div className="flex flex-col py-2 overflow-y-auto">
+                {navItems.filter(i => i.id !== 'overview').map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsPanelCollapsed(false);
+                        setIsMenuOpen(false); // Close drawer on selection
+                      }}
+                      className={`flex items-center px-6 py-4 text-sm font-bold transition-colors w-full text-left ${
+                        isActive 
+                          ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600' 
+                          : 'bg-transparent text-slate-700 hover:bg-gray-50 border-r-4 border-transparent'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 mr-4 ${isActive ? 'text-blue-600' : 'text-slate-500'}`} strokeWidth={2} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+                <div className="border-t border-gray-200 my-2"></div>
+                <div className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">System Status</div>
+                <div className="px-6 py-2 text-sm text-slate-600 flex items-center justify-between">
+                   <span>Backend Link</span>
+                   <span className="text-green-500 font-bold flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Active</span>
+                </div>
+                <div className="px-6 py-2 text-sm text-slate-600 flex items-center justify-between">
+                   <span>OSM Cache</span>
+                   <span className="font-mono text-xs">Synced</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+    </>
   );
 }

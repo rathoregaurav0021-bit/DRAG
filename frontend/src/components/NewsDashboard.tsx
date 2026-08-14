@@ -41,7 +41,7 @@ export default function NewsDashboard() {
 
 
   return (
-    <div className="w-full h-full flex flex-col bg-white">
+    <div className="w-full h-full flex flex-col bg-white min-h-0">
       
       {/* Weather Header */}
       <div className="bg-slate-900 text-white p-4 border-b border-gray-300">
@@ -69,8 +69,8 @@ export default function NewsDashboard() {
       </div>
 
       {/* News Feed */}
-      <div className="p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-slate-800 mb-2 border-b border-gray-200 pb-2">
+      <div className="p-4 flex flex-col gap-3 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar min-h-0">
+        <div className="flex items-center gap-2 text-slate-800 mb-2 border-b border-gray-200 pb-2 shrink-0">
           <Radio className="w-4 h-4 text-red-600" />
           <h3 className="font-bold text-xs uppercase tracking-wider">Live Updates</h3>
         </div>

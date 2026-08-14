@@ -47,7 +47,7 @@ export default function RecipientsDashboard() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mr-12">
           {isLoading && <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" />}
           <div className="bg-slate-800 border border-slate-700 px-4 py-2 text-white font-bold text-sm flex items-center gap-2 uppercase tracking-wide">
             Total Dispatched: <span className="text-blue-400 font-mono">{recipients.length}</span>

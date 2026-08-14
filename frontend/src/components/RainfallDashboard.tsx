@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useMemo } from 'react';
 import { CloudRain, Upload, X } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, CartesianGrid, Tooltip } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
 import Papa from 'papaparse';
 
 export default function RainfallDashboard({ setLayers, setAiSafeSpots }: any) {
@@ -162,7 +162,7 @@ export default function RainfallDashboard({ setLayers, setAiSafeSpots }: any) {
                             </div>
                         </div>
                         
-                        <div className="h-32 w-full border border-gray-200 bg-white">
+                        <div className="h-40 w-full border border-gray-200 bg-white p-2 pb-0">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={rainfallData} onMouseMove={(e: any) => { if(e && e.activePayload) setHoveredData(e.activePayload[0].payload) }} onMouseLeave={() => setHoveredData(null)}>
                                     <defs>
@@ -176,8 +176,10 @@ export default function RainfallDashboard({ setLayers, setAiSafeSpots }: any) {
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="2 2" vertical={false} stroke="#e5e7eb" />
+                                    <XAxis dataKey="time" tick={{fontSize: 10, fill: '#6b7280'}} tickLine={false} axisLine={{stroke: '#e5e7eb'}} minTickGap={20} />
+                                    <YAxis tick={{fontSize: 10, fill: '#6b7280'}} tickLine={false} axisLine={false} width={30} />
                                     <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '0', padding: '6px', border: '1px solid #d1d5db', boxShadow: 'none' }} />
-                                    <Area type="step" dataKey="precipitation" stroke="#1e40af" strokeWidth={1} fill="url(#colorRain)" />
+                                    <Area type="monotone" dataKey="precipitation" stroke="#1e40af" strokeWidth={1} fill="url(#colorRain)" />
                                     <Area type="monotone" dataKey="discharge" stroke="#b45309" strokeWidth={1} fill="url(#colorRunoff)" />
                                 </AreaChart>
                             </ResponsiveContainer>
