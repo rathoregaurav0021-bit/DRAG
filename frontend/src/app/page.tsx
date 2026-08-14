@@ -90,14 +90,7 @@ export default function Home() {
           {/* Floating Top Search/Title Bar */}
           <div className="bg-white rounded-full shadow-md px-5 py-3 flex items-center w-max pointer-events-auto border border-gray-200 shrink-0">
             <Shield className="w-5 h-5 mr-3 text-blue-600" />
-            <h1 className="text-lg font-bold text-slate-800 tracking-tight">FloodShield</h1>
-            <div className="w-[1px] h-5 bg-gray-300 mx-4"></div>
-            <input 
-              type="text" 
-              placeholder="Search locations..." 
-              className="outline-none text-sm w-48 text-slate-700 bg-transparent placeholder-slate-400"
-              disabled
-            />
+            <h1 className="text-lg font-bold text-slate-800 tracking-tight pr-2">FloodShield</h1>
           </div>
 
           {/* Category Pills */}
