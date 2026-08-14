@@ -19,10 +19,10 @@ def fetch_and_ingest_osm_data():
     print(" Fetching OSM Data (Roads & Shelters)")
     print("========================================")
     bbox = (
-        BHURAGAON_BOUNDS["max_lat"], 
-        BHURAGAON_BOUNDS["min_lat"],
-        BHURAGAON_BOUNDS["max_lon"], 
-        BHURAGAON_BOUNDS["min_lon"]
+        BHURAGAON_BOUNDS["min_lon"], # left
+        BHURAGAON_BOUNDS["min_lat"], # bottom
+        BHURAGAON_BOUNDS["max_lon"], # right
+        BHURAGAON_BOUNDS["max_lat"]  # top
     )
     
     roads_path = os.path.join(RAW_DIR, "roads.geojson")
@@ -30,8 +30,8 @@ def fetch_and_ingest_osm_data():
     
     try:
         # 1. Download Road Network
-        print("\\n[1/2] Downloading Road Network...")
-        G = ox.graph_from_bbox(*bbox, network_type="drive")
+        print("\n[1/2] Downloading Road Network...")
+        G = ox.graph_from_bbox(bbox, network_type="drive")
         nodes, edges = ox.graph_to_gdfs(G)
         edges.to_file(roads_path, driver="GeoJSON")
         
@@ -43,9 +43,9 @@ def fetch_and_ingest_osm_data():
 
     try:
         # 2. Download Buildings (Potential Shelters)
-        print("\\n[2/2] Downloading Building Footprints (Hospitals, Schools)...")
+        print("\n[2/2] Downloading Building Footprints (Hospitals, Schools)...")
         tags = {"building": True, "amenity": ["hospital", "school", "clinic"]}
-        buildings = ox.features_from_bbox(*bbox, tags=tags)
+        buildings = ox.features_from_bbox(bbox, tags=tags)
         buildings.to_file(shelters_path, driver="GeoJSON")
         
         # Ingest to DB

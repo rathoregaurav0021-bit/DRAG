@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "floodshield_pass"
     POSTGRES_DB: str = "floodshield_db"
     POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_PORT: int = 5434
 
     # AI Settings
     OPENAI_API_KEY: str = ""

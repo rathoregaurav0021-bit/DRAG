@@ -22,7 +22,7 @@ def run_simulation(dem_file: str = None):
     # For now, we mock a 1km x 1km rectangular domain to test the pipeline.
     length = 1000.0
     width = 1000.0
-    domain = anuga.rectangular_cross(
+    domain = anuga.rectangular_cross_domain(
         int(length/50), int(width/50), len1=length, len2=width
     )
     

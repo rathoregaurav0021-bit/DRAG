@@ -12,15 +12,19 @@ echo -e "\n\e[33m[Phase 1] Initializing Database...\e[0m"
 
 # 2. Run Python Scripts
 echo -e "\n\e[33m[Phase 2] Running Data Ingestion...\e[0m"
-if [ -f "venv/bin/python" ]; then
-    ./venv/bin/python src/data_pipeline.py
+if [ -f ".venv/bin/python" ]; then
+    PYTHON_BIN=".venv/bin/python"
+elif [ -f "venv/bin/python" ]; then
+    PYTHON_BIN="venv/bin/python"
 else
-    echo -e "\e[31mERROR: Virtual environment not found. Please create it first.\e[0m"
+    echo -e "\e[31mERROR: Virtual environment not found (checked .venv and venv). Please create it first.\e[0m"
     exit 1
 fi
 
+$PYTHON_BIN src/data_pipeline.py
+
 echo -e "\n\e[33m[Phase 3] Running Simulation...\e[0m"
-./venv/bin/python src/hydraulic.py
+$PYTHON_BIN src/hydraulic.py
 
 echo -e "\n\e[32m=========================================\e[0m"
 echo -e "\e[32m       Pipeline Execution Complete!      \e[0m"
