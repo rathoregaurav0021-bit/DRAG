@@ -280,6 +280,7 @@ export default function LeafletMap({ layers, hoveredRainfall, aiSafeSpots, userL
         {/* Evacuation Route */}
         {routeGeoJSON && (
           <GeoJSON 
+            key={JSON.stringify(routeGeoJSON)}
             data={routeGeoJSON} 
             style={{ color: '#10b981', weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }} 
           />
