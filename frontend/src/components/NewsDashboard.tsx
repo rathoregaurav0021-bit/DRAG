@@ -44,21 +44,21 @@ export default function NewsDashboard() {
     <div className="w-full h-full flex flex-col bg-white min-h-0 flex-1">
       
       {/* Header Image */}
-      <div className="w-full h-44 shrink-0">
+      <div className="w-full h-24 shrink-0">
         <img src="/bhuragaon_landscape.png" alt="Bhuragaon" className="w-full h-full object-cover" />
       </div>
 
       {/* Title & Weather */}
-      <div className="p-5 border-b border-gray-200 shrink-0 flex justify-between items-start">
+      <div className="p-3 border-b border-gray-200 shrink-0 flex justify-between items-start">
         <div>
-          <h2 className="text-[28px] font-normal text-gray-900 leading-tight">Bhuragaon</h2>
-          <div className="text-gray-600 text-sm mt-1">ভুরাগাঁও</div>
-          <div className="text-gray-500 text-sm mt-0.5">Assam</div>
+          <h2 className="text-[20px] font-bold text-gray-900 leading-tight">Bhuragaon</h2>
+          <div className="text-gray-600 text-xs mt-0.5">ভুরাগাঁও</div>
+          <div className="text-gray-500 text-xs mt-0.5">Assam</div>
         </div>
         <div className="flex flex-col items-end pt-1">
-          <CloudRain className="w-8 h-8 text-gray-400 mb-1" strokeWidth={1} />
-          <div className="text-gray-600 text-[14px] mt-1">{weatherData.condition} · {weatherData.temp}</div>
-          <div className="text-gray-500 text-[13px]">3:14 AM</div>
+          <CloudRain className="w-6 h-6 text-gray-400 mb-1" strokeWidth={1} />
+          <div className="text-gray-600 text-[12px] mt-1">{weatherData.condition} · {weatherData.temp}</div>
+          <div className="text-gray-500 text-[11px]">3:14 AM</div>
         </div>
       </div>
 

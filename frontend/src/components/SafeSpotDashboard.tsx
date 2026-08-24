@@ -118,50 +118,49 @@ export default function SafeSpotDashboard({
   };
 
   return (
-    <div className="bg-white w-full flex flex-col pointer-events-auto rounded-2xl overflow-hidden">
-        
+    <div className="bg-surface-glass backdrop-blur-24 border border-white/10 w-[300px] flex flex-col pointer-events-auto rounded-xl shadow-xl self-start mt-4 ml-4 overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center p-5 border-b border-zinc-200 bg-white text-zinc-900">
+        <div className="flex justify-between items-center p-4 border-b border-white/10 bg-white/5">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-100 rounded-lg">
-                    <Shield className="w-6 h-6 text-emerald-600" />
+                <div className="p-1.5 bg-primary/20 rounded-lg border border-primary/30">
+                    <Shield className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-bold tracking-tight text-zinc-900">Evacuation Route</h2>
-                    <p className="text-sm text-zinc-500 font-medium mt-0.5">Click the map to set a start point.</p>
+                    <h2 className="text-sm font-title-sm text-on-surface">Evacuation Route</h2>
+                    <p className="text-[10px] text-on-surface-variant font-label-caps mt-0.5">Click map to set start point</p>
                 </div>
             </div>
             {userLocation && (
-                <button onClick={handleReset} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Clear Location">
-                    <XCircle className="w-5 h-5" />
+                <button onClick={handleReset} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors" title="Clear Location">
+                    <XCircle className="w-4 h-4" />
                 </button>
             )}
         </div>
 
         {/* Coordinates Display */}
-        <div className="p-5 flex flex-col gap-5">
-            <div className={`p-4 rounded-xl flex flex-col gap-1.5 transition-all ${userLocation ? 'bg-zinc-50 border-2 border-zinc-200' : 'bg-zinc-50/50 border-2 border-dashed border-zinc-200'}`}>
-                <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                    <MapPin className="w-3.5 h-3.5" /> Start Position
+        <div className="p-4 flex flex-col gap-4">
+            <div className={`p-3 rounded-lg flex flex-col gap-1 transition-all ${userLocation ? 'bg-surface-container-high/50 border border-white/10' : 'bg-surface-container-highest/30 border border-dashed border-white/10'}`}>
+                <div className="flex items-center gap-1.5 text-[10px] font-label-caps text-on-surface-variant">
+                    <MapPin className="w-3 h-3" /> Start Position
                 </div>
                 {userLocation ? (
-                    <div className="text-lg font-bold text-zinc-900 tracking-tight">
-                        {userLocation[0].toFixed(5)}, {userLocation[1].toFixed(5)}
+                    <div className="text-sm font-data-mono text-on-surface tracking-tight">
+                        {userLocation[0].toFixed(4)}, {userLocation[1].toFixed(4)}
                     </div>
                 ) : (
-                    <div className="text-sm font-medium text-zinc-400">
+                    <div className="text-xs font-body-md text-on-surface-variant/50">
                         Waiting for map selection...
                     </div>
                 )}
             </div>
             
             {destinationCoords && (
-                <div className="p-4 rounded-xl border-2 bg-emerald-50 border-emerald-200 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                        <MapPin className="w-3.5 h-3.5" /> Safe Zone Target
+                <div className="p-3 rounded-lg border border-primary/30 bg-primary/10 flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-[10px] font-label-caps text-primary">
+                        <MapPin className="w-3 h-3" /> Safe Zone Target
                     </div>
-                    <div className="text-lg font-bold text-emerald-900 tracking-tight">
-                        {destinationCoords[0].toFixed(5)}, {destinationCoords[1].toFixed(5)}
+                    <div className="text-sm font-data-mono text-on-surface tracking-tight">
+                        {destinationCoords[0].toFixed(4)}, {destinationCoords[1].toFixed(4)}
                     </div>
                 </div>
             )}
@@ -169,24 +168,24 @@ export default function SafeSpotDashboard({
             <button 
                 onClick={handleFindRoute}
                 disabled={!userLocation || isSimulating}
-                className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2 ${!userLocation ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : 'bg-zinc-900 hover:bg-black text-white active:scale-[0.98]'}`}
+                className={`w-full py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2 ${!userLocation ? 'bg-surface-container-high/50 text-on-surface-variant cursor-not-allowed border border-white/5' : 'bg-primary/20 hover:bg-primary/30 text-primary border border-primary shadow-[0_0_15px_rgba(190,198,224,0.15)] active:scale-95'}`}
             >
-                {isSimulating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Navigation className="w-4 h-4" />}
-                {isSimulating ? "Calculating Route..." : (routeGeoJSON ? "Recalculate Route" : "Find Safe Route")}
+                {isSimulating ? <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div> : <Navigation className="w-3 h-3" />}
+                {isSimulating ? "Calculating..." : (routeGeoJSON ? "Recalculate Route" : "Find Safe Route")}
             </button>
 
             {destinationName && (
-                <div className="mt-2 pt-5 border-t border-zinc-200 flex flex-col gap-4">
+                <div className="mt-1 pt-4 border-t border-white/10 flex flex-col gap-3">
                     <div>
-                        <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Destination</div>
-                        <div className="text-xl font-bold text-zinc-900 leading-tight" title={destinationName}>{destinationName}</div>
+                        <div className="text-[10px] font-label-caps text-on-surface-variant mb-1">Destination</div>
+                        <div className="text-sm font-title-sm text-on-surface leading-tight truncate" title={destinationName}>{destinationName}</div>
                     </div>
                     
                     <button 
                         onClick={handlePrepareSMS}
-                        className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-blue-600 shadow-md shadow-blue-600/20 text-white hover:bg-blue-700 active:scale-[0.98]"
+                        className="w-full py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2 bg-secondary/20 border border-secondary text-secondary hover:bg-secondary/30 shadow-[0_0_15px_rgba(255,180,171,0.15)] active:scale-95"
                     >
-                        <Smartphone className="w-4 h-4" />
+                        <Smartphone className="w-3 h-3" />
                         Open SMS Dispatch
                     </button>
                 </div>

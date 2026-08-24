@@ -24,72 +24,60 @@ export default function RescueDashboard({ onSelectGroup, onStrandedLoaded }: { o
     }
   };
 
-  const getTierColor = (tier: string) => {
-    if (tier === 'CRITICAL') return 'bg-red-100 text-red-700 border-red-200';
-    if (tier === 'HIGH') return 'bg-orange-100 text-orange-700 border-orange-200';
-    return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+  const getTierClass = (tier: string) => {
+    if (tier === 'CRITICAL') return 'bg-status-emergency/10 border-status-emergency text-status-emergency border-l-4';
+    if (tier === 'HIGH') return 'bg-status-warning/10 border-status-warning text-status-warning border-l-4';
+    return 'bg-primary/10 border-primary text-primary border-l-4';
+  };
+
+  const getBadgeClass = (tier: string) => {
+    if (tier === 'CRITICAL') return 'bg-status-emergency text-on-error';
+    if (tier === 'HIGH') return 'bg-status-warning/20 text-status-warning border border-status-warning/30';
+    return 'bg-primary/20 text-primary border border-primary/30';
   };
 
   return (
-    <div className="bg-white border border-gray-300 shadow-sm w-full flex flex-col pointer-events-auto h-full max-h-[80vh]">
+    <section className="bg-surface-glass backdrop-blur-24 rounded-xl flex flex-col shadow-xl h-[600px] w-full max-w-sm border border-white/10 pointer-events-auto">
+      <header className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-xl">
+        <h2 className="font-title-lg text-title-lg text-primary flex items-center gap-2">
+          <span className="material-symbols-outlined text-[20px]">emergency</span>
+          Incident Queue
+        </h2>
+        <span className="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-white/5">
+          {strandedGroups.length} Active
+        </span>
+      </header>
       
-      {/* Header */}
-      <div className="flex justify-between items-start p-4 border-b border-gray-200 bg-slate-900 text-white">
-          <div className="flex items-center gap-3">
-              <LifeBuoy className="w-5 h-5 text-red-500" />
-              <div>
-                  <h2 className="text-sm font-bold tracking-tight leading-none uppercase">Rescue Dispatch</h2>
-                  <p className="text-xs text-slate-400 font-mono mt-1 leading-tight">Live SOS Triage</p>
-              </div>
-          </div>
-
+      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3 custom-scrollbar">
+        {isLoading ? (
+            <div className="py-10 flex justify-center text-status-emergency">
+                <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+        ) : (
+            strandedGroups.map((group, index) => (
+                <div 
+                    key={group.id} 
+                    onClick={() => onSelectGroup(group)}
+                    className={`p-4 rounded-lg cursor-pointer hover:bg-white/5 transition-colors relative overflow-hidden border border-white/5 ${getTierClass(group.tier)}`}
+                >
+                    {group.tier === 'CRITICAL' && (
+                        <div className="absolute inset-0 bg-status-emergency/5 animate-[pulse-op_2s_infinite] pointer-events-none"></div>
+                    )}
+                    <div className="flex justify-between items-start mb-2 relative z-10">
+                        <span className="font-data-mono text-data-mono text-on-surface">LOC-{group.id}</span>
+                        <span className={`font-label-caps text-[10px] px-1.5 py-0.5 rounded-sm ${getBadgeClass(group.tier)}`}>
+                            {group.tier}
+                        </span>
+                    </div>
+                    <h3 className="font-body-md text-body-md font-semibold text-on-surface mb-2">Elev: {group.elevation}m</h3>
+                    <div className="flex items-center gap-4 text-on-surface-variant font-data-mono text-[11px]">
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">map</span> View Target</span>
+                        <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[14px]">arrow_right</span></span>
+                    </div>
+                </div>
+            ))
+        )}
       </div>
-
-      <div className="p-3 bg-gray-50 border-b border-gray-200">
-          <p className="text-xs text-gray-700 font-medium">
-              Triaging {strandedGroups.length} locations based on elevation data.
-          </p>
-      </div>
-
-      {/* List */}
-      <div className="flex flex-col overflow-y-auto custom-scrollbar">
-          {isLoading ? (
-              <div className="py-10 flex justify-center text-red-500">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-          ) : (
-              strandedGroups.map((group, index) => (
-                  <div 
-                      key={group.id} 
-                      onClick={() => onSelectGroup(group)}
-                      className="p-4 border-b border-gray-200 bg-white hover:bg-red-50 hover:border-red-200 transition-colors cursor-pointer flex flex-col gap-3 group/card"
-                  >
-                      <div className="flex justify-between items-center">
-                          <div className="text-sm font-black text-slate-800 flex items-center gap-2">
-                              <span className="text-gray-400 font-mono">#{index + 1}</span> {group.id}
-                          </div>
-                          <div className={`text-[10px] font-black uppercase px-2 py-1 border ${getTierColor(group.tier)}`}>
-                              {group.tier}
-                          </div>
-                      </div>
-
-                      <div className="flex justify-between items-end">
-                          <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-                                  <AlertTriangle className="w-4 h-4 text-orange-600" />
-                                  Elev: {group.elevation}m
-                              </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 group-hover/card:text-red-600 transition-colors uppercase tracking-wider">
-                              <MapPin className="w-3.5 h-3.5" />
-                              View <ArrowRight className="w-3.5 h-3.5" />
-                          </div>
-                      </div>
-                  </div>
-              ))
-          )}
-      </div>
-
-    </div>
+    </section>
   );
 }
